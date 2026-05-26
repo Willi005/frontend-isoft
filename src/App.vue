@@ -1,5 +1,11 @@
+<script setup lang="ts">
+import { RouterView } from 'vue-router'
+</script>
+
 <template>
-  <div class="bg-blue-500 text-white p-4">
-    Tailwind funciona
-  </div>
+  <RouterView />
 </template>
+
+<style>
+    /* Dejar vacío o agregar estilos globales muy específicos */
+</style>
