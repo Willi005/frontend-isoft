@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import {
+  PhMagnifyingGlass,
+  PhEnvelope,
+  PhBell,
+  PhShoppingCart,
+  PhUserCircle,
+} from '@phosphor-icons/vue'
 
 interface Props {
   showSearch?: boolean
@@ -20,10 +27,11 @@ const onSearch = () => emit('search', searchQuery.value)
 <template>
   <header class="topbar">
     <div class="topbar__inner">
+
       <!-- Logo -->
       <a class="topbar__logo" href="/">
         <div class="topbar__logo-icon">
-          <img src="../../assets/Logo_Ufro.png" alt="logo ufro"/>
+          <img src="../../assets/Logo_Ufro.png" alt="logo ufro" />
         </div>
         <div class="topbar__logo-text">
           <span class="topbar__logo-brand">UFRO</span>
@@ -35,9 +43,12 @@ const onSearch = () => emit('search', searchQuery.value)
       <div v-if="showSearch" class="topbar__search">
         <label for="topbar-search" class="sr-only">Buscar en UFRO Market</label>
         <div class="topbar__search-wrap">
-          <svg class="topbar__search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-          </svg>
+          <PhMagnifyingGlass
+            class="topbar__search-icon"
+            :size="16"
+            weight="bold"
+            aria-hidden="true"
+          />
           <input
             id="topbar-search"
             v-model="searchQuery"
@@ -51,25 +62,36 @@ const onSearch = () => emit('search', searchQuery.value)
 
       <!-- Actions -->
       <nav class="topbar__actions">
+
+        <!-- Mensajes -->
         <button class="topbar__action" aria-label="Mensajes">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
-          </svg>
+          <PhEnvelope :size="20" weight="regular" aria-hidden="true" />
         </button>
-        <button class="topbar__action topbar__action--badge" :data-count="notifCount > 0 ? notifCount : undefined" aria-label="Notificaciones">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
-          </svg>
+
+        <!-- Notificaciones -->
+        <button
+          class="topbar__action topbar__action--badge"
+          :data-count="notifCount > 0 ? notifCount : undefined"
+          aria-label="Notificaciones"
+        >
+          <PhBell :size="20" weight="regular" aria-hidden="true" />
         </button>
-        <button class="topbar__action topbar__action--badge" :data-count="cartCount > 0 ? cartCount : undefined" aria-label="Carrito" @click="emit('cart-click')">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-            <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 001.96-1.62L23 6H6"/>
-          </svg>
+
+        <!-- Carrito -->
+        <button
+          class="topbar__action topbar__action--badge"
+          :data-count="cartCount > 0 ? cartCount : undefined"
+          aria-label="Carrito"
+          @click="emit('cart-click')"
+        >
+          <PhShoppingCart :size="20" weight="regular" aria-hidden="true" />
         </button>
+
+        <!-- Perfil -->
         <button class="topbar__avatar" aria-label="Perfil" @click="emit('profile-click')">
-          <span>U</span>
+          <PhUserCircle :size="28" weight="fill" aria-hidden="true" />
         </button>
+
       </nav>
     </div>
   </header>
@@ -93,18 +115,18 @@ const onSearch = () => emit('search', searchQuery.value)
 }
 
 /* Logo */
-.topbar__logo { 
-  display: flex; 
-  align-items: center; 
-  gap: var(--space-2); 
-  text-decoration: none;  
-  flex-shrink: 0; 
+.topbar__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  text-decoration: none;
+  flex-shrink: 0;
 }
 .topbar__logo-icon {
-  width: 42px; 
+  width: 42px;
   height: 42px;
-  display: flex; 
-  align-items: center; 
+  display: flex;
+  align-items: center;
   justify-content: center;
 }
 .topbar__logo-icon img {
@@ -114,15 +136,21 @@ const onSearch = () => emit('search', searchQuery.value)
 }
 .topbar__logo-text { display: flex; flex-direction: column; line-height: 1.0; }
 .topbar__logo-brand { font-weight: 800; font-size: var(--font-size-lg); color: var(--white); letter-spacing: 0.02em; }
-.topbar__logo-sub  { font-size: var(--font-size-xs); color: rgba(255,255,255,0.85); font-weight: 500; }
+.topbar__logo-sub   { font-size: var(--font-size-xs); color: rgba(255,255,255,0.85); font-weight: 500; }
 
 /* Search */
-.topbar__search { flex: 1; max-width: 560px;}
+.topbar__search { flex: 1; max-width: 560px; }
 .topbar__search-wrap {
   position: relative;
   display: flex; align-items: center;
 }
-.topbar__search-icon { position: absolute; left: var(--space-4); color: var(--gray-400); pointer-events: none; flex-shrink: 0; }
+.topbar__search-icon {
+  position: absolute;
+  left: var(--space-4);
+  color: var(--gray-400);
+  pointer-events: none;
+  flex-shrink: 0;
+}
 .topbar__search-input {
   width: 100%;
   padding: 6px var(--space-4) 6px calc(var(--space-4) + 16px + var(--space-3));
@@ -146,9 +174,12 @@ const onSearch = () => emit('search', searchQuery.value)
   border: none;
   border-radius: var(--radius-md);
   color: rgba(255,255,255,0.85);
+  cursor: pointer;
   transition: background var(--transition-fast), color var(--transition-fast);
 }
 .topbar__action:hover { background: rgba(255,255,255,0.2); color: var(--white); }
+
+/* Badge de notificaciones */
 .topbar__action--badge[data-count]::after {
   content: attr(data-count);
   position: absolute; top: -4px; right: -4px;
@@ -161,16 +192,18 @@ const onSearch = () => emit('search', searchQuery.value)
   padding: 0 4px;
   border: 2px solid var(--primary);
 }
+
+/* Avatar */
 .topbar__avatar {
   width: 36px; height: 36px;
   border-radius: var(--radius-full);
   background: var(--accent);
   border: 2px solid rgba(255,255,255,0.4);
   color: var(--white);
-  font-weight: 700; font-size: var(--font-size-sm);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
   transition: border-color var(--transition-fast);
+  padding: 0;
 }
 .topbar__avatar:hover { border-color: rgba(255,255,255,0.9); }
 
