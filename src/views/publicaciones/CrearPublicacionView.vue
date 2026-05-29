@@ -1,0 +1,76 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { PhArrowLeft } from '@phosphor-icons/vue'
+import PublicacionForm from '@/components/publicaciones/PublicacionForm.vue'
+import { crearPublicacion } from '@/services/publicacionesService'
+import type { CrearPublicacionRequest } from '@/types/publicaciones'
+
+const router = useRouter()
+const cargando = ref(false)
+const errorMsg = ref<string | null>(null)
+
+async function onSubmit(payload: {
+  datos: CrearPublicacionRequest
+  archivos: File[]
+}): Promise<void> {
+  cargando.value = true
+  errorMsg.value = null
+
+  try {
+    await crearPublicacion(
+      payload.datos as CrearPublicacionRequest,
+      payload.archivos,
+    )
+    router.push({ name: 'gestion-publicaciones' })
+  } catch {
+    errorMsg.value = 'No se pudo crear la publicacion. Verifique los datos e intente nuevamente.'
+  } finally {
+    cargando.value = false
+  }
+}
+
+function onCancelar(): void {
+  router.back()
+}
+</script>
+
+<template>
+  <section class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 lg:px-0">
+    <!-- Boton volver atras -->
+    <button
+      type="button"
+      class="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary)] transition-colors duration-150 hover:bg-[var(--primary-light)]"
+      @click="onCancelar"
+    >
+      <PhArrowLeft :size="16" weight="bold" />
+      Volver atrás
+    </button>
+
+    <!-- Encabezado segun Figma -->
+    <div>
+      <h1 class="text-2xl font-bold leading-8 text-gray-900">
+        Crear nueva Publicación
+      </h1>
+      <p class="mt-1 text-sm text-gray-500">
+        Completa los detalles para publicar tu producto en la comunidad universitaria.
+      </p>
+    </div>
+
+    <!-- Error global -->
+    <div
+      v-if="errorMsg"
+      class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+    >
+      {{ errorMsg }}
+    </div>
+
+    <!-- Formulario -->
+    <PublicacionForm
+      modo="crear"
+      :cargando="cargando"
+      @submit="onSubmit"
+      @cancelar="onCancelar"
+    />
+  </section>
+</template>
