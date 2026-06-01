@@ -1,6 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { PhUploadSimple, PhX } from '@phosphor-icons/vue'
+import {
+  PhUploadSimple,
+  PhX,
+  PhMagnifyingGlassPlus,
+  PhMagnifyingGlassMinus,
+  PhCaretLeft,
+  PhCaretRight
+} from '@phosphor-icons/vue'
+import { getCloudinaryUrl } from '@/utils/cloudinary'
 
 interface Props {
   imagenesExistentes?: string[]
@@ -72,6 +80,60 @@ function eliminarExistente(url: string): void {
   urlsAMantener.value = urlsAMantener.value.filter((u) => u !== url)
   emit('update:imagenesAMantener', urlsAMantener.value)
 }
+
+// ---------------------------------------------------------------------------
+// Modal de visualizacion de imagenes
+// ---------------------------------------------------------------------------
+
+const todasLasImagenes = computed(() => [
+  ...urlsAMantener.value.map((url) => getCloudinaryUrl(url)),
+  ...previewsNuevos.value.map((p) => p.url)
+])
+
+const modalImagenAbierto = ref(false)
+const zoomNivel = ref(1)
+const imagenSeleccionada = ref(0)
+
+const imagenActualEnModal = computed(() => todasLasImagenes.value[imagenSeleccionada.value] || null)
+
+function abrirModalImagen(index: number) {
+  imagenSeleccionada.value = index
+  modalImagenAbierto.value = true
+  zoomNivel.value = 1
+  document.body.style.overflow = 'hidden'
+}
+
+function cerrarModalImagen() {
+  modalImagenAbierto.value = false
+  zoomNivel.value = 1
+  document.body.style.overflow = 'auto'
+}
+
+function hacerZoomIn() {
+  zoomNivel.value = Math.min(zoomNivel.value + 0.5, 4)
+}
+
+function hacerZoomOut() {
+  zoomNivel.value = Math.max(zoomNivel.value - 0.5, 0.5)
+}
+
+function siguienteImagen() {
+  if (imagenSeleccionada.value < todasLasImagenes.value.length - 1) {
+    imagenSeleccionada.value++
+  } else {
+    imagenSeleccionada.value = 0
+  }
+  zoomNivel.value = 1
+}
+
+function imagenAnterior() {
+  if (imagenSeleccionada.value > 0) {
+    imagenSeleccionada.value--
+  } else {
+    imagenSeleccionada.value = todasLasImagenes.value.length - 1
+  }
+  zoomNivel.value = 1
+}
 </script>
 
 <template>
@@ -129,14 +191,16 @@ function eliminarExistente(url: string): void {
       class="grid grid-cols-4 gap-2 sm:grid-cols-5"
     >
       <!-- Existentes -->
-      <div
-        v-for="url in urlsAMantener"
+      <button
+        v-for="(url, index) in urlsAMantener"
         :key="'existente-' + url"
-        class="group relative aspect-square overflow-hidden rounded-md border border-gray-200"
+        type="button"
+        class="group relative aspect-square overflow-hidden rounded-md border-2 border-transparent bg-gray-100 opacity-80 transition-all duration-200 hover:border-gray-300 hover:opacity-100 hover:shadow-sm"
+        @click="abrirModalImagen(index)"
       >
         <img
-          :src="url"
-          alt="Imagen existente"
+          :src="getCloudinaryUrl(url)"
+          alt="Imagen actual"
           class="h-full w-full object-cover"
         />
         <div class="absolute inset-0 flex items-start justify-end bg-black/0 p-1 transition-colors duration-150 group-hover:bg-black/30">
@@ -149,13 +213,15 @@ function eliminarExistente(url: string): void {
             <PhX :size="12" weight="bold" />
           </button>
         </div>
-      </div>
+      </button>
 
       <!-- Nuevas -->
-      <div
+      <button
         v-for="(preview, index) in previewsNuevos"
         :key="'nuevo-' + index"
-        class="group relative aspect-square overflow-hidden rounded-md border border-dashed border-[var(--primary)]"
+        type="button"
+        class="group relative aspect-square overflow-hidden rounded-md border-2 border-transparent bg-gray-100 opacity-80 transition-all duration-200 hover:border-gray-300 hover:opacity-100 hover:shadow-sm"
+        @click="abrirModalImagen(urlsAMantener.length + index)"
       >
         <img
           :src="preview.url"
@@ -172,7 +238,71 @@ function eliminarExistente(url: string): void {
             <PhX :size="12" weight="bold" />
           </button>
         </div>
-      </div>
+      </button>
     </div>
   </div>
+
+  <!-- Modal de Imagen -->
+  <Teleport to="body">
+    <div
+      v-if="modalImagenAbierto && imagenActualEnModal"
+      class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+    >
+      <!-- Toolbar -->
+      <div class="absolute top-4 right-4 z-10 flex gap-4">
+        <button
+          @click="hacerZoomOut"
+          class="rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/25"
+          title="Alejar"
+        >
+          <PhMagnifyingGlassMinus :size="24" />
+        </button>
+        <button
+          @click="hacerZoomIn"
+          class="rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/25"
+          title="Acercar"
+        >
+          <PhMagnifyingGlassPlus :size="24" />
+        </button>
+        <button
+          @click="cerrarModalImagen"
+          class="ml-4 rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-red-500/80"
+          title="Cerrar"
+        >
+          <PhX :size="24" />
+        </button>
+      </div>
+
+      <!-- Imagen con Zoom -->
+      <div 
+        class="flex h-full w-full items-center justify-center overflow-auto p-4"
+        @click.self="cerrarModalImagen"
+      >
+        <img
+          :src="imagenActualEnModal"
+          :style="{ transform: `scale(${zoomNivel})`, transformOrigin: 'center center' }"
+          class="max-h-[90vh] max-w-[90vw] object-contain transition-transform duration-300"
+          alt="Imagen ampliada"
+        />
+      </div>
+
+      <!-- Controles de navegación de galería -->
+      <template v-if="todasLasImagenes.length > 1">
+        <button
+          @click="imagenAnterior"
+          class="absolute left-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70"
+          title="Imagen anterior"
+        >
+          <PhCaretLeft :size="32" weight="bold" />
+        </button>
+        <button
+          @click="siguienteImagen"
+          class="absolute right-4 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70"
+          title="Siguiente imagen"
+        >
+          <PhCaretRight :size="32" weight="bold" />
+        </button>
+      </template>
+    </div>
+  </Teleport>
 </template>

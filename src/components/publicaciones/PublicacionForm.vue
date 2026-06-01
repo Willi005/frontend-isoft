@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, computed, watch, ref } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import ImagenUploader from './ImagenUploader.vue'
 import type {
   CrearPublicacionRequest,
@@ -69,6 +69,23 @@ const form = reactive({
   precio: null as number | null,
   stock: null as number | null,
   condicion: '' as EstadoCondicionPublicacion | '',
+})
+
+const condicionAbierta = ref(false)
+const condicionContainer = ref<HTMLElement | null>(null)
+
+function handleClickOutside(event: MouseEvent) {
+  if (condicionAbierta.value && condicionContainer.value && !condicionContainer.value.contains(event.target as Node)) {
+    condicionAbierta.value = false
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
 })
 
 const archivosNuevos = reactive<{ lista: File[] }>({ lista: [] })
@@ -217,7 +234,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
       <div class="flex flex-col gap-5">
 
         <!-- Seccion: Catalogo (producto simulado) -->
-        <div class="rounded border border-gray-200 bg-white shadow-sm">
+        <div class="rounded border border-gray-200 bg-white">
           <div class="border-b border-gray-200 px-6 py-4">
             <h2 class="text-base font-semibold text-gray-900">Producto del catálogo</h2>
             <p class="mt-0.5 text-xs text-gray-500">
@@ -275,7 +292,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
         </div>
 
         <!-- Seccion: Detalles -->
-        <div class="rounded border border-gray-200 bg-white shadow-sm">
+        <div class="rounded border border-gray-200 bg-white">
           <div class="border-b border-gray-200 px-6 py-4">
             <h2 class="text-base font-semibold text-gray-900">Detalles</h2>
           </div>
@@ -326,21 +343,38 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
               <label for="pub-condicion" class="text-sm font-medium text-gray-700">
                 Condición del artículo
               </label>
-              <select
-                id="pub-condicion"
-                v-model="form.condicion"
-                class="w-full appearance-none rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition-colors duration-150 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/15"
-                :class="{ 'border-red-400 focus:border-red-500 focus:ring-red-500/15': errores.condicion }"
-              >
-                <option value="" disabled>Seleccionar condición</option>
-                <option
-                  v-for="opt in CONDICION_OPCIONES"
-                  :key="opt.value"
-                  :value="opt.value"
+              <div class="relative" ref="condicionContainer">
+                <button
+                  type="button"
+                  id="pub-condicion"
+                  class="flex w-full items-center justify-between rounded border border-gray-300 bg-white px-3 py-2.5 text-left text-sm text-gray-900 outline-none transition-colors duration-150 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/15"
+                  :class="{ 'border-red-400 focus:border-red-500 focus:ring-red-500/15': errores.condicion }"
+                  @click="condicionAbierta = !condicionAbierta"
                 >
-                  {{ opt.label }}
-                </option>
-              </select>
+                  <span v-if="form.condicion">{{ CONDICION_OPCIONES.find(o => o.value === form.condicion)?.label }}</span>
+                  <span v-else class="text-gray-400">Seleccionar condición</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': condicionAbierta }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </button>
+
+                <!-- Menu Dropdown -->
+                <div
+                  v-if="condicionAbierta"
+                  class="absolute left-0 right-0 top-full mt-1 z-10 rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+                >
+                  <button
+                    v-for="opt in CONDICION_OPCIONES"
+                    :key="opt.value"
+                    type="button"
+                    class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                    :class="{ 'bg-gray-50 font-semibold': form.condicion === opt.value }"
+                    @click="form.condicion = opt.value; condicionAbierta = false"
+                  >
+                    {{ opt.label }}
+                  </button>
+                </div>
+              </div>
               <p v-if="errores.condicion" class="text-xs text-red-500">
                 {{ errores.condicion }}
               </p>
@@ -349,7 +383,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
         </div>
 
         <!-- Seccion: Contenido (titulo + descripcion) -->
-        <div class="rounded border border-gray-200 bg-white shadow-sm">
+        <div class="rounded border border-gray-200 bg-white">
           <div class="border-b border-gray-200 px-6 py-4">
             <h2 class="text-base font-semibold text-gray-900">Contenido</h2>
           </div>
@@ -419,7 +453,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
       <div class="flex flex-col gap-5">
 
         <!-- Seccion: Media / Imagenes -->
-        <div class="rounded border border-gray-200 bg-white shadow-sm">
+        <div class="rounded border border-gray-200 bg-white">
           <div class="border-b border-gray-200 px-6 py-4">
             <h2 class="text-base font-semibold text-gray-900">Imágenes</h2>
             <p class="mt-0.5 text-xs text-gray-500">
@@ -437,7 +471,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
         </div>
 
         <!-- Seccion: Especificaciones (placeholder simulado) -->
-        <div class="rounded border border-gray-200 bg-white shadow-sm">
+        <div class="rounded border border-gray-200 bg-white">
           <div class="border-b border-gray-200 px-6 py-4">
             <div class="flex items-center justify-between">
               <h2 class="text-base font-semibold text-gray-900">Especificaciones</h2>

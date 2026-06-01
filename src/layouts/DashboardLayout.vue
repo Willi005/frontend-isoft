@@ -29,7 +29,7 @@ withDefaults(defineProps<Props>(), {
       </main>
     </div>
 
-    <Footer />
+    <Footer v-if="!$route.meta.hideFooter" />
   </div>
 </template>
 

@@ -45,19 +45,16 @@ async function cargarPublicaciones(): Promise<void> {
   error.value = null
 
   try {
-    const qCond = route.query.condicion as string
-    let cond: EstadoCondicionPublicacion | undefined = undefined
-    if (qCond === 'new') cond = EstadoCondicionPublicacion.NUEVO
-    else if (qCond === 'used') cond = EstadoCondicionPublicacion.USADO // Depende del enum
-    
-    // Si la integracion o backend espera precioMin, precioMax, condicion
+    // Leemos los query params de la ruta, que ahora vienen directo del Sidebar
+    const qCond = route.query.condicion as EstadoCondicionPublicacion | undefined
+
     const params: BuscarPublicacionesParams = {
       page: paginaActual.value,
       size: tamanioPagina,
       busqueda: busqueda.value.trim() || undefined,
       precioMin: route.query.precioMin ? Number(route.query.precioMin) : undefined,
       precioMax: route.query.precioMax ? Number(route.query.precioMax) : undefined,
-      condicion: cond || (condicionFiltro.value || undefined),
+      condicion: qCond || undefined,
     }
 
     const respuesta = await buscarPublicaciones(params)

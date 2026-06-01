@@ -30,6 +30,7 @@ export const publicacionesRoutes: RouteRecordRaw[] = [
         path: 'crear',
         name: 'crear-publicacion',
         component: () => import('@/views/publicaciones/CrearPublicacionView.vue'),
+        meta: { hideFooter: true }
       },
       {
         path: ':id(\\d+)',
@@ -40,6 +41,7 @@ export const publicacionesRoutes: RouteRecordRaw[] = [
         path: ':id(\\d+)/editar',
         name: 'editar-publicacion',
         component: () => import('@/views/publicaciones/EditarPublicacionView.vue'),
+        meta: { hideFooter: true }
       },
     ],
   },

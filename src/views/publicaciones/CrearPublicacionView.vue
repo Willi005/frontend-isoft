@@ -10,10 +10,7 @@ const router = useRouter()
 const cargando = ref(false)
 const errorMsg = ref<string | null>(null)
 
-async function onSubmit(payload: {
-  datos: CrearPublicacionRequest
-  archivos: File[]
-}): Promise<void> {
+async function onSubmit(payload: { datos: any; archivos: File[] }): Promise<void> {
   cargando.value = true
   errorMsg.value = null
 

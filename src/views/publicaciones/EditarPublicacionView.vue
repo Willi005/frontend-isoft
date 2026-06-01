@@ -42,7 +42,7 @@ async function cargarDatos(): Promise<void> {
 // ---------------------------------------------------------------------------
 
 async function onSubmit(payload: {
-  datos: EditarPublicacionRequest
+  datos: any
   archivos: File[]
 }): Promise<void> {
   cargandoSubmit.value = true

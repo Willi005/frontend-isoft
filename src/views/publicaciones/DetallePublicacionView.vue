@@ -13,6 +13,14 @@ import {
 import { obtenerPublicacion, agregarAlCarrito } from '@/services/publicacionesService'
 import type { PublicacionDetalleResponse } from '@/types/publicaciones'
 import { EstadoCondicionPublicacion, EstadoModeracionPublicacion } from '@/types/publicaciones'
+import { getCloudinaryUrl } from '@/utils/cloudinary'
+import { 
+  PhMagnifyingGlassPlus, 
+  PhMagnifyingGlassMinus, 
+  PhX, 
+  PhCaretLeft, 
+  PhCaretRight
+} from '@phosphor-icons/vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -63,9 +71,54 @@ const MODERACION_CONFIG: Record<EstadoModeracionPublicacion, { label: string; cl
 // ---------------------------------------------------------------------------
 
 const imagenPrincipal = computed(() => {
-  if (!publicacion.value || publicacion.value.imagenesUrls.length === 0) return null
-  return publicacion.value.imagenesUrls[imagenSeleccionada.value]
+  if (!publicacion.value || !publicacion.value.imagenesUrls || publicacion.value.imagenesUrls.length === 0) {
+    return null
+  }
+  return getCloudinaryUrl(publicacion.value.imagenesUrls[imagenSeleccionada.value])
 })
+
+const modalImagenAbierto = ref(false)
+const zoomNivel = ref(1)
+
+function abrirModalImagen() {
+  modalImagenAbierto.value = true
+  zoomNivel.value = 1
+  document.body.style.overflow = 'hidden'
+}
+
+function cerrarModalImagen() {
+  modalImagenAbierto.value = false
+  zoomNivel.value = 1
+  document.body.style.overflow = 'auto'
+}
+
+function hacerZoomIn() {
+  zoomNivel.value = Math.min(zoomNivel.value + 0.5, 4)
+}
+
+function hacerZoomOut() {
+  zoomNivel.value = Math.max(zoomNivel.value - 0.5, 0.5)
+}
+
+function siguienteImagen() {
+  if (!publicacion.value) return
+  if (imagenSeleccionada.value < publicacion.value.imagenesUrls.length - 1) {
+    imagenSeleccionada.value++
+  } else {
+    imagenSeleccionada.value = 0 // loop al inicio
+  }
+  zoomNivel.value = 1 // resetear zoom
+}
+
+function imagenAnterior() {
+  if (!publicacion.value) return
+  if (imagenSeleccionada.value > 0) {
+    imagenSeleccionada.value--
+  } else {
+    imagenSeleccionada.value = publicacion.value.imagenesUrls.length - 1 // loop al final
+  }
+  zoomNivel.value = 1 // resetear zoom
+}
 
 const tieneStock = computed(() => publicacion.value !== null && publicacion.value.stock > 0)
 
@@ -147,7 +200,7 @@ onMounted(() => cargarPublicacion())
       @click="volver"
     >
       <PhArrowLeft :size="16" weight="regular" />
-      Volver al catalogo
+      Volver atrás
     </button>
 
     <!-- Estado de carga -->
@@ -181,16 +234,23 @@ onMounted(() => cargarPublicacion())
       <!-- Columna izquierda: Galeria -->
       <div class="flex flex-col gap-3">
         <!-- Imagen principal -->
-        <div class="aspect-square overflow-hidden rounded-lg border border-gray-200 bg-gray-100">
+        <div 
+          class="aspect-square w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm cursor-pointer relative group"
+          @click="abrirModalImagen"
+        >
           <img
             v-if="imagenPrincipal"
             :src="imagenPrincipal"
             :alt="publicacion.titulo"
-            class="h-full w-full object-contain"
+            class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
+          <!-- Icono indicador de expandir -->
+          <div v-if="imagenPrincipal" class="absolute bottom-4 right-4 rounded-full bg-white/80 p-2 text-gray-700 shadow-sm backdrop-blur-sm opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <PhMagnifyingGlassPlus :size="20" />
+          </div>
           <div
             v-else
-            class="flex h-full w-full items-center justify-center text-gray-300"
+            class="flex h-full w-full items-center justify-center bg-gray-100 text-gray-300"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -212,21 +272,21 @@ onMounted(() => cargarPublicacion())
         <!-- Thumbnails -->
         <div
           v-if="publicacion.imagenesUrls.length > 1"
-          class="flex gap-2 overflow-x-auto pb-1"
+          class="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-4 lg:grid-cols-5"
         >
           <button
             v-for="(url, index) in publicacion.imagenesUrls"
             :key="index"
             type="button"
             :class="[
-              'h-16 w-16 flex-shrink-0 overflow-hidden rounded-md border-2 transition-all duration-150',
+              'aspect-square w-full overflow-hidden rounded-lg border-2 transition-all duration-200',
               index === imagenSeleccionada
-                ? 'border-[var(--primary)] ring-1 ring-[var(--primary)]/30'
-                : 'border-gray-200 hover:border-gray-400',
+                ? 'border-[var(--primary)] ring-2 ring-[var(--primary)]/20 shadow-md scale-[1.02]'
+                : 'border-transparent bg-gray-100 hover:border-gray-300 hover:shadow-sm opacity-80 hover:opacity-100',
             ]"
             @click="imagenSeleccionada = index"
           >
-            <img :src="url" :alt="`Imagen ${index + 1}`" class="h-full w-full object-cover" />
+            <img :src="getCloudinaryUrl(url)" :alt="`Imagen ${index + 1}`" class="h-full w-full object-cover" />
           </button>
         </div>
       </div>
@@ -392,4 +452,68 @@ onMounted(() => cargarPublicacion())
       </div>
     </div>
   </section>
+
+  <!-- Modal de Imagen -->
+  <Teleport to="body">
+    <div
+      v-if="modalImagenAbierto && imagenPrincipal"
+      class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+    >
+      <!-- Toolbar -->
+      <div class="absolute top-4 right-4 z-10 flex gap-4">
+        <button
+          @click="hacerZoomOut"
+          class="rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/25"
+          title="Alejar"
+        >
+          <PhMagnifyingGlassMinus :size="24" />
+        </button>
+        <button
+          @click="hacerZoomIn"
+          class="rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-white/25"
+          title="Acercar"
+        >
+          <PhMagnifyingGlassPlus :size="24" />
+        </button>
+        <button
+          @click="cerrarModalImagen"
+          class="rounded-full bg-white/10 p-3 text-white transition-colors hover:bg-red-500/80 ml-4"
+          title="Cerrar"
+        >
+          <PhX :size="24" />
+        </button>
+      </div>
+
+      <!-- Imagen con Zoom -->
+      <div 
+        class="flex h-full w-full items-center justify-center overflow-auto p-4"
+        @click.self="cerrarModalImagen"
+      >
+        <img
+          :src="imagenPrincipal"
+          :style="{ transform: `scale(${zoomNivel})`, transformOrigin: 'center center' }"
+          class="max-h-[90vh] max-w-[90vw] object-contain transition-transform duration-300"
+          alt="Imagen ampliada"
+        />
+      </div>
+
+      <!-- Controles de navegación de galería -->
+      <template v-if="publicacion.imagenesUrls.length > 1">
+        <button
+          @click="imagenAnterior"
+          class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70 z-10"
+          title="Imagen anterior"
+        >
+          <PhCaretLeft :size="32" weight="bold" />
+        </button>
+        <button
+          @click="siguienteImagen"
+          class="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70 z-10"
+          title="Siguiente imagen"
+        >
+          <PhCaretRight :size="32" weight="bold" />
+        </button>
+      </template>
+    </div>
+  </Teleport>
 </template>

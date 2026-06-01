@@ -50,6 +50,7 @@ async function cargarPublicaciones(): Promise<void> {
       size: 10,
       vendedorId: 1, // Simulando al usuario logueado
     })
+    
     publicaciones.value = respuesta.content
     totalPaginas.value = respuesta.totalPages
     totalElementos.value = respuesta.totalElements
@@ -70,6 +71,10 @@ function irACrear(): void {
 
 function irAEditar(id: number): void {
   router.push({ name: 'editar-publicacion', params: { id } })
+}
+
+function verDetalle(id: number): void {
+  router.push({ name: 'detalle-publicacion', params: { id } })
 }
 
 // ---------------------------------------------------------------------------
@@ -253,6 +258,15 @@ onMounted(() => cargarPublicaciones())
       v-else
       class="overflow-hidden rounded-lg border border-gray-200 bg-white"
     >
+      <!-- Header de la tabla (desktop) -->
+      <div class="hidden items-center gap-4 border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 md:flex">
+        <div class="w-16 flex-shrink-0"></div> <!-- Espacio miniatura -->
+        <div class="min-w-0 flex-1">Producto</div>
+        <div class="mr-2 w-32 text-right lg:w-40">Detalles</div>
+        <div class="w-24 flex-shrink-0 text-center sm:w-28">Estado</div>
+        <div class="w-24 flex-shrink-0 text-center">Acciones</div>
+      </div>
+
       <PublicacionGestionRow
         v-for="pub in publicaciones"
         :key="pub.id"
@@ -260,6 +274,7 @@ onMounted(() => cargarPublicaciones())
         @editar="irAEditar"
         @cambiar-estado="solicitarCambioEstado"
         @eliminar="solicitarEliminacion"
+        @ver-detalle="verDetalle"
       />
     </div>
 

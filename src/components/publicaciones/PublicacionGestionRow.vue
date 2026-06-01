@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { PhPencilSimple, PhPause, PhPlay, PhTrash } from '@phosphor-icons/vue'
+import {
+  PhPencilSimple,
+  PhTrash,
+  PhPlay,
+  PhPause,
+} from '@phosphor-icons/vue'
 import type { PublicacionListaResponse } from '@/types/publicaciones'
-import { EstadoCondicionPublicacion, EstadoPublicacion } from '@/types/publicaciones'
+import { EstadoPublicacion, EstadoCondicionPublicacion } from '@/types/publicaciones'
+import { getCloudinaryUrl } from '@/utils/cloudinary'
 
 interface Props {
   publicacion: PublicacionListaResponse
@@ -20,6 +26,7 @@ const emit = defineEmits<{
   (e: 'editar', id: number): void
   (e: 'cambiar-estado', id: number, estado: EstadoPublicacion): void
   (e: 'eliminar', id: number): void
+  (e: 'ver-detalle', id: number): void
 }>()
 
 const CONDICION_LABELS: Record<EstadoCondicionPublicacion, string> = {
@@ -63,6 +70,15 @@ function formatPrecio(valor: number): string {
     minimumFractionDigits: 0,
   })
 }
+
+function formatFecha(fechaStr: string): string {
+  if (!fechaStr) return ''
+  const date = new Date(fechaStr)
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
 </script>
 
 <template>
@@ -70,10 +86,15 @@ function formatPrecio(valor: number): string {
     class="flex items-center gap-4 border-b border-gray-200 bg-white px-4 py-3 transition-colors duration-150 last:border-b-0 hover:bg-gray-50"
   >
     <!-- Miniatura -->
-    <div class="h-12 w-12 flex-shrink-0 overflow-hidden rounded-md bg-gray-100">
+    <button
+      type="button"
+      class="group relative h-16 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-md border border-gray-200 bg-gray-100 transition-all duration-200 hover:border-[var(--primary)] hover:shadow-md hover:ring-2 hover:ring-[var(--primary)]/20"
+      title="Ver detalles"
+      @click.stop="emit('ver-detalle', publicacion.id)"
+    >
       <img
         v-if="publicacion.imagenPrincipalUrl && !imgError"
-        :src="publicacion.imagenPrincipalUrl"
+        :src="getCloudinaryUrl(publicacion.imagenPrincipalUrl)"
         :alt="publicacion.titulo"
         loading="lazy"
         class="h-full w-full object-cover"
@@ -98,35 +119,51 @@ function formatPrecio(valor: number): string {
           />
         </svg>
       </div>
-    </div>
+    </button>
 
     <!-- Informacion -->
     <div class="flex min-w-0 flex-1 flex-col">
-      <p class="truncate text-sm font-medium text-gray-900">
+      <button
+        type="button"
+        class="truncate text-left text-sm font-medium text-gray-900 transition-colors duration-150 hover:text-[var(--primary)]"
+        @click.prevent="emit('ver-detalle', publicacion.id)"
+      >
         {{ publicacion.titulo }}
-      </p>
+      </button>
       <div class="flex items-center gap-2">
         <span class="text-sm font-semibold text-[var(--primary)]">
           {{ formatPrecio(publicacion.precio) }}
         </span>
         <span class="text-xs text-gray-400">
-          {{ CONDICION_LABELS[publicacion.condicion] }}
+          • {{ CONDICION_LABELS[publicacion.condicion] }}
         </span>
       </div>
     </div>
 
+    <!-- Metadatos de la publicacion (Figma) -->
+    <div class="hidden flex-col items-end gap-1 md:flex md:w-32 lg:w-40 mr-2 text-right">
+      <span class="text-xs text-gray-500">
+        Stock: <strong class="font-medium text-gray-700">{{ publicacion.stock }} disponibles</strong>
+      </span>
+      <span class="text-xs text-gray-400">
+        Publicado el {{ formatFecha(publicacion.fechaCreacion) }}
+      </span>
+    </div>
+
     <!-- Estado -->
-    <span
-      :class="[
-        'inline-flex flex-shrink-0 items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
-        ESTADO_CONFIG[publicacion.estadoPublicacion].clases,
-      ]"
-    >
-      {{ ESTADO_CONFIG[publicacion.estadoPublicacion].label }}
-    </span>
+    <div class="w-24 sm:w-28 flex-shrink-0 text-center">
+      <span
+        :class="[
+          'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+          ESTADO_CONFIG[publicacion.estadoPublicacion].clases,
+        ]"
+      >
+        {{ ESTADO_CONFIG[publicacion.estadoPublicacion].label }}
+      </span>
+    </div>
 
     <!-- Acciones -->
-    <div class="flex flex-shrink-0 items-center gap-1">
+    <div class="flex w-24 flex-shrink-0 items-center justify-center gap-1">
       <button
         type="button"
         class="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors duration-150 hover:bg-[var(--primary-light)] hover:text-[var(--primary)]"
@@ -138,12 +175,12 @@ function formatPrecio(valor: number): string {
 
       <button
         type="button"
-        class="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors duration-150 hover:bg-amber-50 hover:text-amber-600"
+        class="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors duration-150 hover:bg-[var(--primary-light)] hover:text-[var(--primary)]"
         :aria-label="estaActiva ? 'Pausar publicacion' : 'Activar publicacion'"
         @click="emit('cambiar-estado', publicacion.id, estadoToggle)"
       >
-        <PhPause v-if="estaActiva" :size="18" weight="regular" />
-        <PhPlay v-else :size="18" weight="regular" />
+        <PhPause v-if="estaActiva" :size="20" weight="regular" />
+        <PhPlay v-else :size="20" weight="regular" />
       </button>
 
       <button

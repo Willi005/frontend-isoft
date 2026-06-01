@@ -73,9 +73,11 @@ export interface PublicacionListaResponse {
   id: number
   titulo: string
   precio: number
+  stock: number
   condicion: EstadoCondicionPublicacion
   estadoPublicacion: EstadoPublicacion
   imagenPrincipalUrl: string | null
+  fechaCreacion: string
 }
 
 export interface StockActualizadoResponse {
