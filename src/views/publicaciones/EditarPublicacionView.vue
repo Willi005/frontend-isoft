@@ -74,10 +74,10 @@ onMounted(() => cargarDatos())
     <!-- Boton volver atras -->
     <button
       type="button"
-      class="inline-flex w-fit items-center gap-2 rounded-full border border-[var(--primary)] px-4 py-2 text-sm font-semibold text-[var(--primary)] transition-colors duration-150 hover:bg-[var(--primary-light)]"
+      class="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors duration-150 hover:text-gray-700"
       @click="onCancelar"
     >
-      <PhArrowLeft :size="16" weight="bold" />
+      <PhArrowLeft :size="16" weight="regular" />
       Volver atrás
     </button>
 

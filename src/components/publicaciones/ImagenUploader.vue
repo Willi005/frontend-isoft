@@ -149,9 +149,6 @@ function eliminarExistente(url: string): void {
             <PhX :size="12" weight="bold" />
           </button>
         </div>
-        <span class="absolute bottom-0 left-0 w-full bg-black/50 px-1 py-0.5 text-center text-[10px] text-white">
-          Actual
-        </span>
       </div>
 
       <!-- Nuevas -->
@@ -175,9 +172,6 @@ function eliminarExistente(url: string): void {
             <PhX :size="12" weight="bold" />
           </button>
         </div>
-        <span class="absolute bottom-0 left-0 w-full bg-[var(--primary)]/80 px-1 py-0.5 text-center text-[10px] text-white">
-          Nueva
-        </span>
       </div>
     </div>
   </div>

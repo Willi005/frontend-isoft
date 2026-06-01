@@ -18,9 +18,8 @@ const router = createRouter({
       component: DashboardLayout,
       children: [
         {
-          path: '', // Al dejarlo vacío, se carga por defecto al entrar a "/"
-          name: 'ui-gallery',
-          component: UIAppView
+          path: '',
+          redirect: '/publicaciones'
         }
       ]
     },

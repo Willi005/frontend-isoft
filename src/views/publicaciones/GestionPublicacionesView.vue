@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { PhPlus } from '@phosphor-icons/vue'
+import { PhPlus, PhArrowLeft } from '@phosphor-icons/vue'
 import PublicacionGestionRow from '@/components/publicaciones/PublicacionGestionRow.vue'
 import ConfirmacionModal from '@/components/publicaciones/ConfirmacionModal.vue'
 import {
@@ -48,6 +48,7 @@ async function cargarPublicaciones(): Promise<void> {
     const respuesta = await buscarPublicaciones({
       page: paginaActual.value,
       size: 10,
+      vendedorId: 1, // Simulando al usuario logueado
     })
     publicaciones.value = respuesta.content
     totalPaginas.value = respuesta.totalPages
@@ -159,6 +160,16 @@ onMounted(() => cargarPublicaciones())
 
 <template>
   <section class="flex flex-col gap-5">
+    <!-- Boton volver -->
+    <button
+      type="button"
+      class="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors duration-150 hover:text-gray-700 mb-2"
+      @click="router.back()"
+    >
+      <PhArrowLeft :size="16" weight="regular" />
+      Volver atrás
+    </button>
+
     <!-- Encabezado -->
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>

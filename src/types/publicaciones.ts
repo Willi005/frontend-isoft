@@ -141,6 +141,8 @@ export interface BuscarPublicacionesParams {
   page?: number
   size?: number
   sort?: string
+  vendedorId?: number
+  estadoPublicacion?: EstadoPublicacion | 'TODOS' | string
 }
 
 export type OperacionStock = 'SUMA' | 'RESTA'

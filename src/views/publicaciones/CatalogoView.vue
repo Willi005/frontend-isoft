@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { PhMagnifyingGlass, PhFunnel } from '@phosphor-icons/vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { PhMagnifyingGlass } from '@phosphor-icons/vue'
 import PublicacionCard from '@/components/publicaciones/PublicacionCard.vue'
 import { buscarPublicaciones } from '@/services/publicacionesService'
 import type { PublicacionListaResponse, BuscarPublicacionesParams } from '@/types/publicaciones'
 import { EstadoCondicionPublicacion } from '@/types/publicaciones'
 
 const router = useRouter()
+const route = useRoute()
 
 // ---------------------------------------------------------------------------
 // Estado
@@ -44,11 +45,19 @@ async function cargarPublicaciones(): Promise<void> {
   error.value = null
 
   try {
+    const qCond = route.query.condicion as string
+    let cond: EstadoCondicionPublicacion | undefined = undefined
+    if (qCond === 'new') cond = EstadoCondicionPublicacion.NUEVO
+    else if (qCond === 'used') cond = EstadoCondicionPublicacion.USADO // Depende del enum
+    
+    // Si la integracion o backend espera precioMin, precioMax, condicion
     const params: BuscarPublicacionesParams = {
       page: paginaActual.value,
       size: tamanioPagina,
       busqueda: busqueda.value.trim() || undefined,
-      condicion: condicionFiltro.value || undefined,
+      precioMin: route.query.precioMin ? Number(route.query.precioMin) : undefined,
+      precioMax: route.query.precioMax ? Number(route.query.precioMax) : undefined,
+      condicion: cond || (condicionFiltro.value || undefined),
     }
 
     const respuesta = await buscarPublicaciones(params)
@@ -61,6 +70,11 @@ async function cargarPublicaciones(): Promise<void> {
     cargando.value = false
   }
 }
+
+watch(() => route.query, () => {
+  paginaActual.value = 0
+  cargarPublicaciones()
+}, { deep: true })
 
 function buscar(): void {
   paginaActual.value = 0
@@ -134,15 +148,6 @@ onMounted(() => cargarPublicaciones())
 
         <button
           type="button"
-          class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md border border-gray-300 bg-white text-gray-500 transition-colors duration-150 hover:bg-gray-50 hover:text-gray-700"
-          aria-label="Filtros"
-          @click="mostrarFiltros = !mostrarFiltros"
-        >
-          <PhFunnel :size="16" weight="regular" />
-        </button>
-
-        <button
-          type="button"
           class="hidden rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-[var(--primary-dark)] sm:inline-flex"
           @click="buscar"
         >
@@ -151,39 +156,7 @@ onMounted(() => cargarPublicaciones())
       </div>
     </div>
 
-    <!-- Panel de filtros expandible -->
-    <div
-      v-if="mostrarFiltros"
-      class="flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4"
-    >
-      <div class="flex flex-col gap-1">
-        <label for="filtro-condicion" class="text-xs font-medium text-gray-600">
-          Condicion
-        </label>
-        <select
-          id="filtro-condicion"
-          v-model="condicionFiltro"
-          class="appearance-none rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors duration-150 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/15"
-          @change="buscar"
-        >
-          <option
-            v-for="opt in CONDICION_OPCIONES"
-            :key="opt.value"
-            :value="opt.value"
-          >
-            {{ opt.label }}
-          </option>
-        </select>
-      </div>
-
-      <button
-        type="button"
-        class="rounded-md px-3 py-2 text-sm font-medium text-[var(--primary)] transition-colors duration-150 hover:bg-[var(--primary-light)]"
-        @click="limpiarFiltros"
-      >
-        Limpiar filtros
-      </button>
-    </div>
+    <!-- Panel de filtros eliminado (usando el de integración) -->
 
     <!-- Estado de carga: skeleton -->
     <div

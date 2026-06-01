@@ -1,5 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+
+const router = useRouter()
+const route = useRoute()
 
 const emit = defineEmits<{ (e: 'apply', filters: Filters): void }>()
 
@@ -30,12 +34,21 @@ const isDirty = ref(false)
 const markDirty = () => { isDirty.value = true }
 
 const apply = () => {
-  emit('apply', {
-    categories: selectedCategories.value,
-    priceMin: priceMin.value,
-    priceMax: priceMax.value,
-    condition: condition.value,
-  })
+  const query = { ...route.query }
+  
+  if (selectedCategories.value.length > 0) query.categorias = selectedCategories.value.join(',')
+  else delete query.categorias
+  
+  if (priceMin.value !== null) query.precioMin = priceMin.value.toString()
+  else delete query.precioMin
+  
+  if (priceMax.value !== null) query.precioMax = priceMax.value.toString()
+  else delete query.precioMax
+  
+  if (condition.value !== 'any') query.condicion = condition.value
+  else delete query.condicion
+
+  router.push({ query })
   isDirty.value = false
 }
 
@@ -45,15 +58,38 @@ const reset = () => {
   priceMax.value = null
   condition.value = 'any'
   isDirty.value = false
-  emit('apply', { categories: [], priceMin: null, priceMax: null, condition: 'any' })
+  
+  const query = { ...route.query }
+  delete query.categorias
+  delete query.precioMin
+  delete query.precioMax
+  delete query.condicion
+  
+  router.push({ query })
 }
+
+const hayFiltrosActivos = computed(() => {
+  return !!(route.query.categorias || route.query.precioMin || route.query.precioMax || route.query.condicion)
+})
+
+const syncFromRoute = () => {
+  const q = route.query
+  selectedCategories.value = q.categorias ? (q.categorias as string).split(',') : []
+  priceMin.value = q.precioMin ? Number(q.precioMin) : null
+  priceMax.value = q.precioMax ? Number(q.precioMax) : null
+  condition.value = q.condicion ? (q.condicion as string) : 'any'
+  isDirty.value = false
+}
+
+onMounted(syncFromRoute)
+watch(() => route.query, syncFromRoute)
 </script>
 
 <template>
   <aside class="sidebar">
     <div class="sidebar__header">
       <h2 class="sidebar__heading">Filtros</h2>
-      <button v-if="isDirty" class="sidebar__reset" @click="reset">Limpiar</button>
+      <button v-if="isDirty || hayFiltrosActivos" class="sidebar__reset" @click="reset">Limpiar</button>
     </div>
 
     <!-- Categories -->
@@ -109,11 +145,31 @@ const reset = () => {
     <!-- Condition -->
     <div class="sidebar__section">
       <h3 class="sidebar__section-title">Condición</h3>
-      <div class="sidebar__options">
-        <label v-for="opt in [{ value: 'any', label: 'Cualquiera' }, { value: 'new', label: 'Nuevo' }, { value: 'used', label: 'Usado' }]" :key="opt.value" class="sidebar__radio-label">
-          <input v-model="condition" type="radio" :value="opt.value" class="sidebar__radio" @change="markDirty" />
+      <div class="sidebar__group-content">
+        <label class="sidebar__radio-label">
+          <input type="radio" value="any" v-model="condition" class="sidebar__radio" @change="markDirty" />
           <span class="sidebar__radio-custom"></span>
-          <span class="sidebar__option-text">{{ opt.label }}</span>
+          <span class="sidebar__option-text">Cualquiera</span>
+        </label>
+        <label class="sidebar__radio-label">
+          <input type="radio" value="NUEVO" v-model="condition" class="sidebar__radio" @change="markDirty" />
+          <span class="sidebar__radio-custom"></span>
+          <span class="sidebar__option-text">Nuevo</span>
+        </label>
+        <label class="sidebar__radio-label">
+          <input type="radio" value="COMO_NUEVO" v-model="condition" class="sidebar__radio" @change="markDirty" />
+          <span class="sidebar__radio-custom"></span>
+          <span class="sidebar__option-text">Como nuevo</span>
+        </label>
+        <label class="sidebar__radio-label">
+          <input type="radio" value="BUEN_ESTADO" v-model="condition" class="sidebar__radio" @change="markDirty" />
+          <span class="sidebar__radio-custom"></span>
+          <span class="sidebar__option-text">Buen estado</span>
+        </label>
+        <label class="sidebar__radio-label">
+          <input type="radio" value="ACEPTABLE" v-model="condition" class="sidebar__radio" @change="markDirty" />
+          <span class="sidebar__radio-custom"></span>
+          <span class="sidebar__option-text">Aceptable</span>
         </label>
       </div>
     </div>

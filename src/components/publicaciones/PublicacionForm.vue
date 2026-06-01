@@ -36,8 +36,28 @@ const emit = defineEmits<{
 // ---------------------------------------------------------------------------
 
 const MOCK_VENDEDOR_ID = 1
-const MOCK_PRODUCTO_CATALOGO_ID = 1
-const MOCK_PRODUCTO_NOMBRE = 'Producto de ejemplo (simulado)'
+const productoSeleccionado = ref<{ id: number; nombre: string } | null>(
+  props.modo === 'editar' ? { id: 1, nombre: 'Producto de ejemplo (simulado)' } : null
+)
+const busquedaProducto = ref('')
+const resultadosBusqueda = computed(() => {
+  if (!busquedaProducto.value.trim()) return []
+  return [
+    { id: 101, nombre: 'Producto 1: ' + busquedaProducto.value },
+    { id: 102, nombre: 'Producto 2: ' + busquedaProducto.value },
+    { id: 103, nombre: 'Producto 3 (Otra opcion)' }
+  ]
+})
+
+function seleccionarProducto(prod: { id: number; nombre: string }) {
+  productoSeleccionado.value = prod
+  busquedaProducto.value = ''
+  delete errores.producto
+}
+
+function cambiarProducto() {
+  productoSeleccionado.value = null
+}
 
 // ---------------------------------------------------------------------------
 // Estado del formulario
@@ -133,6 +153,9 @@ function validar(): boolean {
     if (form.stock === null || form.stock < 1) {
       errores.stock = 'El stock debe ser al menos 1'
     }
+    if (!productoSeleccionado.value) {
+      errores.producto = 'Debe seleccionar un producto del catálogo'
+    }
   }
 
   return Object.keys(errores).length === 0
@@ -152,7 +175,7 @@ function onSubmit(): void {
       precio: form.precio!,
       stock: form.stock!,
       condicion: form.condicion as EstadoCondicionPublicacion,
-      productoCatalogoId: MOCK_PRODUCTO_CATALOGO_ID,
+      productoCatalogoId: productoSeleccionado.value!.id,
       vendedorId: MOCK_VENDEDOR_ID,
     }
     emit('submit', { datos, archivos: archivosNuevos.lista })
@@ -183,7 +206,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
 
 <template>
   <form
-    class="flex flex-col gap-0"
+    class="flex flex-col gap-0 pb-24"
     novalidate
     @submit.prevent="onSubmit"
   >
@@ -202,20 +225,51 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
             </p>
           </div>
           <div class="px-6 py-4">
+            <!-- Buscar Producto -->
+            <div v-if="!productoSeleccionado" class="relative">
+              <input
+                v-model="busquedaProducto"
+                type="text"
+                placeholder="Buscar producto por nombre..."
+                class="w-full rounded border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-400 outline-none transition-colors duration-150 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/15"
+                :class="{ 'border-red-400': errores.producto }"
+              />
+              <p v-if="errores.producto" class="mt-1 text-xs text-red-500">{{ errores.producto }}</p>
+              
+              <!-- Dropdown resultados -->
+              <div
+                v-if="resultadosBusqueda.length > 0"
+                class="absolute left-0 right-0 top-full mt-1 z-10 rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+              >
+                <div class="px-3 py-2 text-xs font-semibold text-gray-500 bg-gray-50 border-b border-gray-100">
+                  Resultados encontrados
+                </div>
+                <button
+                  v-for="res in resultadosBusqueda"
+                  :key="res.id"
+                  type="button"
+                  class="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                  @click="seleccionarProducto(res)"
+                >
+                  {{ res.nombre }}
+                </button>
+              </div>
+            </div>
+
             <!-- Item seleccionado mock -->
-            <div class="flex items-center gap-3 rounded border border-gray-200 bg-gray-50 px-4 py-3">
+            <div v-else class="flex items-center gap-3 rounded border border-gray-200 bg-gray-50 px-4 py-3">
               <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded bg-gray-200 text-gray-400">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
                 </svg>
               </div>
               <div class="min-w-0 flex-1">
-                <p class="truncate text-sm font-medium text-gray-800">{{ MOCK_PRODUCTO_NOMBRE }}</p>
-                <p class="text-xs text-gray-400">ID: {{ MOCK_PRODUCTO_CATALOGO_ID }}</p>
+                <p class="truncate text-sm font-medium text-gray-800">{{ productoSeleccionado.nombre }}</p>
+                <p class="text-xs text-gray-400">ID: {{ productoSeleccionado.id }}</p>
               </div>
-              <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-                Seleccionado
-              </span>
+              <button type="button" class="text-xs font-semibold text-[var(--primary)] hover:underline" @click="cambiarProducto">
+                Cambiar
+              </button>
             </div>
           </div>
         </div>
@@ -396,18 +450,27 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
             </p>
           </div>
           <div class="flex flex-col gap-3 px-6 py-5">
-            <div
-              v-for="spec in especificacionesMock"
-              :key="spec.nombre"
-              class="flex items-center justify-between rounded border border-gray-100 bg-gray-50 px-4 py-2.5"
-            >
-              <div class="flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                </svg>
-                <span class="text-sm font-medium text-gray-700">{{ spec.nombre }}</span>
+            <template v-if="productoSeleccionado">
+              <div
+                v-for="spec in especificacionesMock"
+                :key="spec.nombre"
+                class="flex items-center justify-between rounded border border-gray-100 bg-gray-50 px-4 py-2.5"
+              >
+                <div class="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-[var(--primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                  <span class="text-sm font-medium text-gray-700">{{ spec.nombre }}</span>
+                </div>
+                <span class="text-sm text-gray-500">{{ spec.valor }}</span>
               </div>
-              <span class="text-sm text-gray-500">{{ spec.valor }}</span>
+            </template>
+            <div v-else class="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 bg-gray-50 py-8 text-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="mb-2 h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+              </svg>
+              <p class="text-sm font-medium text-gray-600">Aún no hay especificaciones</p>
+              <p class="text-xs text-gray-500">Selecciona un producto del catálogo para cargar sus características.</p>
             </div>
           </div>
         </div>
@@ -415,7 +478,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
     </div>
 
     <!-- ==================== FOOTER ACCIONES ==================== -->
-    <div class="sticky bottom-0 -mx-6 mt-6 flex items-center justify-end gap-3 border-t border-gray-200 bg-white px-6 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+    <div class="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-end gap-3 border-t border-gray-200 bg-white px-6 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
       <button
         type="button"
         class="inline-flex items-center justify-center rounded px-5 py-2.5 text-sm font-medium text-red-600 transition-colors duration-150 hover:bg-red-50"

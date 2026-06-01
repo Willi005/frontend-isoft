@@ -63,6 +63,14 @@ const onSearch = () => emit('search', searchQuery.value)
       <!-- Actions -->
       <nav class="topbar__actions">
 
+        <!-- Enlaces Rapidos (Solo para Desarrollo/Testeo) -->
+        <RouterLink to="/publicaciones" class="topbar__action px-3" style="width: auto; text-decoration: none;" aria-label="Catálogo">
+          <span class="text-xs font-bold tracking-wider">Catálogo</span>
+        </RouterLink>
+        <RouterLink to="/publicaciones/gestion" class="topbar__action px-3" style="width: auto; text-decoration: none;" aria-label="Mis Publicaciones">
+          <span class="text-xs font-bold tracking-wider">Mis Pubs</span>
+        </RouterLink>
+
         <!-- Mensajes -->
         <button class="topbar__action" aria-label="Mensajes">
           <PhEnvelope :size="20" weight="regular" aria-hidden="true" />

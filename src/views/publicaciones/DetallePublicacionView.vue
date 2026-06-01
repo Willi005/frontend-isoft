@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { PhArrowLeft, PhShoppingCart, PhMinus, PhPlus } from '@phosphor-icons/vue'
+import { useRouter, useRoute } from 'vue-router'
+import {
+  PhArrowLeft,
+  PhShoppingCart,
+  PhMinus,
+  PhPlus,
+  PhWarningCircle,
+  PhCaretDown,
+  PhCaretUp
+} from '@phosphor-icons/vue'
 import { obtenerPublicacion, agregarAlCarrito } from '@/services/publicacionesService'
 import type { PublicacionDetalleResponse } from '@/types/publicaciones'
 import { EstadoCondicionPublicacion, EstadoModeracionPublicacion } from '@/types/publicaciones'
@@ -23,6 +31,8 @@ const imagenSeleccionada = ref(0)
 const cantidad = ref(1)
 const agregandoCarrito = ref(false)
 const mensajeCarrito = ref<string | null>(null)
+
+const mostrarTodasCaracteristicas = ref(false)
 
 // ---------------------------------------------------------------------------
 // Labels
@@ -107,6 +117,11 @@ async function onAgregarCarrito(): Promise<void> {
 
   try {
     await agregarAlCarrito(publicacion.value.id, cantidad.value)
+    
+    // Soft reset: actualizar stock local y reiniciar cantidad
+    publicacion.value.stock -= cantidad.value
+    cantidad.value = 1
+    
     mensajeCarrito.value = 'Producto agregado al carrito'
     setTimeout(() => { mensajeCarrito.value = null }, 3000)
   } catch {
@@ -318,6 +333,49 @@ onMounted(() => cargarPublicacion())
           </p>
         </div>
 
+        <!-- Especificaciones del Producto (Simulado) -->
+        <div class="border-t border-gray-200 pt-4">
+          <h2 class="mb-3 text-sm font-semibold text-gray-900">Características principales</h2>
+          <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
+            <div class="flex flex-col rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+              <span class="text-xs font-medium text-gray-500">Característica 1</span>
+              <span class="font-medium text-gray-900">Simulado Ej: J.K. Rowling</span>
+            </div>
+            <div class="flex flex-col rounded-md border border-gray-200 bg-gray-50 px-3 py-2">
+              <span class="text-xs font-medium text-gray-500">Característica 2</span>
+              <span class="font-medium text-gray-900">Simulado Ej: Salamandra</span>
+            </div>
+            <template v-if="mostrarTodasCaracteristicas">
+              <div class="col-span-1 md:col-span-2 mt-2 border border-gray-200">
+                <div class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+                  <span class="text-xs font-medium text-gray-500 w-1/3">Característica 3</span>
+                  <span class="text-sm text-gray-900 w-2/3">Simulado Ej: Español</span>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-3">
+                  <span class="text-xs font-medium text-gray-500 w-1/3">Característica 4</span>
+                  <span class="text-sm text-gray-900 w-2/3">Simulado Ej: 256</span>
+                </div>
+                <div class="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
+                  <span class="text-xs font-medium text-gray-500 w-1/3">Característica 5</span>
+                  <span class="text-sm text-gray-900 w-2/3">Simulado Ej: Tapa blanda</span>
+                </div>
+                <div class="flex items-center justify-between bg-gray-50 px-4 py-3">
+                  <span class="text-xs font-medium text-gray-500 w-1/3">Característica 6</span>
+                  <span class="text-sm text-gray-900 w-2/3">Simulado Ej: 200g</span>
+                </div>
+              </div>
+            </template>
+          </div>
+          <button 
+            type="button" 
+            class="mt-3 flex items-center gap-1 text-sm font-semibold text-[var(--primary)] hover:text-[var(--primary-dark)]"
+            @click="mostrarTodasCaracteristicas = !mostrarTodasCaracteristicas"
+          >
+            {{ mostrarTodasCaracteristicas ? 'Ocultar características' : 'Ver todas las características' }}
+            <component :is="mostrarTodasCaracteristicas ? PhCaretUp : PhCaretDown" :size="16" weight="bold" />
+          </button>
+        </div>
+
         <!-- Razon de rechazo -->
         <div
           v-if="publicacion.razonRechazo"
@@ -330,7 +388,6 @@ onMounted(() => cargarPublicacion())
         <!-- Metadatos -->
         <div class="flex flex-col gap-1 border-t border-gray-200 pt-4 text-xs text-gray-400">
           <span>Publicado el {{ formatFecha(publicacion.fechaCreacion) }}</span>
-          <span>ID de vendedor: {{ publicacion.vendedorId }}</span>
         </div>
       </div>
     </div>

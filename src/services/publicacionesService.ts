@@ -93,6 +93,8 @@ export async function buscarPublicaciones(
       page: params.page ?? 0,
       size: params.size ?? 12,
       sort: params.sort ?? undefined,
+      vendedorId: params.vendedorId ?? undefined,
+      estadoPublicacion: params.estadoPublicacion ?? undefined,
     },
   })
   return data
