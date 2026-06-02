@@ -81,9 +81,7 @@ function eliminarExistente(url: string): void {
   emit('update:imagenesAMantener', urlsAMantener.value)
 }
 
-// ---------------------------------------------------------------------------
 // Modal de visualizacion de imagenes
-// ---------------------------------------------------------------------------
 
 const todasLasImagenes = computed(() => [
   ...urlsAMantener.value.map((url) => getCloudinaryUrl(url)),
@@ -242,13 +240,13 @@ function imagenAnterior() {
     </div>
   </div>
 
-  <!-- Modal de Imagen -->
+  <!-- Modal para ver la imagen en pantalla completa -->
   <Teleport to="body">
     <div
       v-if="modalImagenAbierto && imagenActualEnModal"
       class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm"
     >
-      <!-- Toolbar -->
+      <!-- Botones de control del modal -->
       <div class="absolute top-4 right-4 z-10 flex gap-4">
         <button
           @click="hacerZoomOut"
@@ -273,7 +271,7 @@ function imagenAnterior() {
         </button>
       </div>
 
-      <!-- Imagen con Zoom -->
+      <!-- Imagen a tamaño completo -->
       <div 
         class="flex h-full w-full items-center justify-center overflow-auto p-4"
         @click.self="cerrarModalImagen"
@@ -281,12 +279,12 @@ function imagenAnterior() {
         <img
           :src="imagenActualEnModal"
           :style="{ transform: `scale(${zoomNivel})`, transformOrigin: 'center center' }"
-          class="max-h-[90vh] max-w-[90vw] object-contain transition-transform duration-300"
+          class="max-h-[90vh] max-w-[90vw] h-full w-full object-contain transition-transform duration-300"
           alt="Imagen ampliada"
         />
       </div>
 
-      <!-- Controles de navegación de galería -->
+      <!-- Botones de anterior/siguiente -->
       <template v-if="todasLasImagenes.length > 1">
         <button
           @click="imagenAnterior"

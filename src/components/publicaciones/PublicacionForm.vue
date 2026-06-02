@@ -7,10 +7,11 @@ import type {
   PublicacionDetalleResponse,
 } from '@/types/publicaciones'
 import { EstadoCondicionPublicacion } from '@/types/publicaciones'
+import { CONDICION_OPCIONES } from '@/utils/useCondicionLabels'
+import { catalogoFacade } from '@/services/catalogoFacade'
+import { cuentasFacade } from '@/services/cuentasFacade'
 
-// ---------------------------------------------------------------------------
 // Props y emits
-// ---------------------------------------------------------------------------
 
 interface Props {
   modo: 'crear' | 'editar'
@@ -31,22 +32,14 @@ const emit = defineEmits<{
   (e: 'cancelar'): void
 }>()
 
-// ---------------------------------------------------------------------------
 // Datos simulados (mock) — no se muestran en el formulario
-// ---------------------------------------------------------------------------
 
-const MOCK_VENDEDOR_ID = 1
 const productoSeleccionado = ref<{ id: number; nombre: string } | null>(
   props.modo === 'editar' ? { id: 1, nombre: 'Producto de ejemplo (simulado)' } : null
 )
 const busquedaProducto = ref('')
 const resultadosBusqueda = computed(() => {
-  if (!busquedaProducto.value.trim()) return []
-  return [
-    { id: 101, nombre: 'Producto 1: ' + busquedaProducto.value },
-    { id: 102, nombre: 'Producto 2: ' + busquedaProducto.value },
-    { id: 103, nombre: 'Producto 3 (Otra opcion)' }
-  ]
+  return catalogoFacade.buscarProductos(busquedaProducto.value)
 })
 
 function seleccionarProducto(prod: { id: number; nombre: string }) {
@@ -59,9 +52,7 @@ function cambiarProducto() {
   productoSeleccionado.value = null
 }
 
-// ---------------------------------------------------------------------------
-// Estado del formulario
-// ---------------------------------------------------------------------------
+// Estado local del formulario
 
 const form = reactive({
   titulo: '',
@@ -92,27 +83,14 @@ const archivosNuevos = reactive<{ lista: File[] }>({ lista: [] })
 const imagenesAMantener = reactive<{ lista: string[] }>({ lista: [] })
 const errores = reactive<Record<string, string>>({})
 
-// ---------------------------------------------------------------------------
-// Opciones de condicion
-// ---------------------------------------------------------------------------
 
-const CONDICION_OPCIONES: { value: EstadoCondicionPublicacion; label: string }[] = [
-  { value: EstadoCondicionPublicacion.NUEVO, label: 'Nuevo' },
-  { value: EstadoCondicionPublicacion.COMO_NUEVO, label: 'Como nuevo' },
-  { value: EstadoCondicionPublicacion.BUEN_ESTADO, label: 'Buen estado' },
-  { value: EstadoCondicionPublicacion.ACEPTABLE, label: 'Aceptable' },
-]
 
-// ---------------------------------------------------------------------------
 // Contadores de caracteres
-// ---------------------------------------------------------------------------
 
 const tituloCount = computed(() => form.titulo.length)
 const descripcionCount = computed(() => form.descripcion.length)
 
-// ---------------------------------------------------------------------------
 // Inicializacion con datos existentes (modo edicion)
-// ---------------------------------------------------------------------------
 
 watch(
   () => props.datosIniciales,
@@ -128,9 +106,7 @@ watch(
   { immediate: true },
 )
 
-// ---------------------------------------------------------------------------
 // Especificaciones simuladas del producto de catalogo
-// ---------------------------------------------------------------------------
 
 const especificacionesMock = ref([
   { nombre: 'Almacenamiento', valor: '128 GB' },
@@ -138,24 +114,22 @@ const especificacionesMock = ref([
   { nombre: 'RAM', valor: '6 GB' },
 ])
 
-// ---------------------------------------------------------------------------
 // Validacion
-// ---------------------------------------------------------------------------
 
 function validar(): boolean {
   // Reiniciar errores
   Object.keys(errores).forEach((k) => delete errores[k])
 
   if (!form.titulo.trim()) {
-    errores.titulo = 'El titulo es obligatorio'
+    errores.titulo = 'El título es obligatorio'
   } else if (form.titulo.length > 30) {
-    errores.titulo = 'El titulo no puede superar los 30 caracteres'
+    errores.titulo = 'El título no puede superar los 30 caracteres'
   }
 
   if (!form.descripcion.trim()) {
-    errores.descripcion = 'La descripcion es obligatoria'
+    errores.descripcion = 'La descripción es obligatoria'
   } else if (form.descripcion.length > 2000) {
-    errores.descripcion = 'La descripcion no puede superar los 2000 caracteres'
+    errores.descripcion = 'La descripción no puede superar los 2000 caracteres'
   }
 
   if (form.precio === null || form.precio <= 0) {
@@ -163,7 +137,7 @@ function validar(): boolean {
   }
 
   if (!form.condicion) {
-    errores.condicion = 'La condicion es obligatoria'
+    errores.condicion = 'La condición es obligatoria'
   }
 
   if (props.modo === 'crear') {
@@ -178,9 +152,7 @@ function validar(): boolean {
   return Object.keys(errores).length === 0
 }
 
-// ---------------------------------------------------------------------------
-// Submit
-// ---------------------------------------------------------------------------
+// Guardado de datos
 
 function onSubmit(): void {
   if (!validar()) return
@@ -193,7 +165,7 @@ function onSubmit(): void {
       stock: form.stock!,
       condicion: form.condicion as EstadoCondicionPublicacion,
       productoCatalogoId: productoSeleccionado.value!.id,
-      vendedorId: MOCK_VENDEDOR_ID,
+      vendedorId: cuentasFacade.obtenerUsuarioActual().id,
     }
     emit('submit', { datos, archivos: archivosNuevos.lista })
   } else {
@@ -208,9 +180,7 @@ function onSubmit(): void {
   }
 }
 
-// ---------------------------------------------------------------------------
 // Handlers de ImagenUploader
-// ---------------------------------------------------------------------------
 
 function onArchivosUpdate(archivos: File[]): void {
   archivosNuevos.lista = archivos
@@ -299,7 +269,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
           <div class="flex flex-col gap-4 px-6 py-5">
             <!-- Precio y Stock -->
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <!-- Precio -->
+              <!-- Precio formateado -->
               <div class="flex flex-col gap-1">
                 <label for="pub-precio" class="text-sm font-medium text-gray-700">
                   Precio (CLP)
@@ -338,7 +308,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
               </div>
             </div>
 
-            <!-- Condicion -->
+            <!-- Estado del producto (nuevo, usado, etc.) -->
             <div class="flex flex-col gap-1">
               <label for="pub-condicion" class="text-sm font-medium text-gray-700">
                 Condición del artículo
@@ -388,7 +358,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
             <h2 class="text-base font-semibold text-gray-900">Contenido</h2>
           </div>
           <div class="flex flex-col gap-4 px-6 py-5">
-            <!-- Titulo -->
+            <!-- Título de la publicación -->
             <div class="flex flex-col gap-1">
               <div class="flex items-center justify-between">
                 <label for="pub-titulo" class="text-sm font-medium text-gray-700">
@@ -417,7 +387,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
               </p>
             </div>
 
-            <!-- Descripcion -->
+            <!-- Texto descriptivo del producto -->
             <div class="flex flex-col gap-1">
               <div class="flex items-center justify-between">
                 <label for="pub-descripcion" class="text-sm font-medium text-gray-700">

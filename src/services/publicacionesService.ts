@@ -12,9 +12,7 @@ import type {
 } from '@/types/publicaciones'
 import { EstadoModeracionPublicacion, EstadoPublicacion } from '@/types/publicaciones'
 
-// ---------------------------------------------------------------------------
 // Instancia de Axios
-// ---------------------------------------------------------------------------
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080',
@@ -23,9 +21,7 @@ const apiClient = axios.create({
   },
 })
 
-// ---------------------------------------------------------------------------
 // Utilidades internas
-// ---------------------------------------------------------------------------
 
 /**
  * Construye un FormData con la parte "datos" serializada como JSON Blob
@@ -51,9 +47,7 @@ function buildMultipartPayload(
   return fd
 }
 
-// ---------------------------------------------------------------------------
-// Funciones de servicio
-// ---------------------------------------------------------------------------
+// Métodos principales del componente de servicio
 
 /**
  * Crear publicacion.

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import Topbar from '../components/layout/Topbar.vue'
-import Sidebar from '../components/layout/Sidebar.vue'
-import Footer from '../components/layout/Footer.vue'
+import Topbar from '@/components/layout/Topbar.vue'
+import Sidebar from '@/components/layout/Sidebar.vue'
+import Footer from '@/components/layout/Footer.vue'
 
 interface Props {
   showSidebar?: boolean

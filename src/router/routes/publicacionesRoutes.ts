@@ -2,7 +2,7 @@ import type { RouteRecordRaw } from 'vue-router'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 
 export const publicacionesRoutes: RouteRecordRaw[] = [
-  // Catalogo: con sidebar de filtros visible
+  // Catálogo: con sidebar de filtros visible
   {
     path: '/publicaciones',
     component: DashboardLayout,
@@ -11,6 +11,7 @@ export const publicacionesRoutes: RouteRecordRaw[] = [
         path: '',
         name: 'catalogo',
         component: () => import('@/views/publicaciones/CatalogoView.vue'),
+        meta: { hideFooter: true }
       },
     ],
   },

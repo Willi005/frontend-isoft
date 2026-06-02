@@ -5,14 +5,12 @@ import { PhMagnifyingGlass } from '@phosphor-icons/vue'
 import PublicacionCard from '@/components/publicaciones/PublicacionCard.vue'
 import { buscarPublicaciones } from '@/services/publicacionesService'
 import type { PublicacionListaResponse, BuscarPublicacionesParams } from '@/types/publicaciones'
-import { EstadoCondicionPublicacion } from '@/types/publicaciones'
+import type { EstadoCondicionPublicacion } from '@/types/publicaciones'
 
 const router = useRouter()
 const route = useRoute()
 
-// ---------------------------------------------------------------------------
-// Estado
-// ---------------------------------------------------------------------------
+// Estado local
 
 const publicaciones = ref<PublicacionListaResponse[]>([])
 const cargando = ref(false)
@@ -23,22 +21,13 @@ const totalPaginas = ref(0)
 const totalElementos = ref(0)
 const tamanioPagina = 12
 
-// Filtros
+// Estado de los filtros
 const busqueda = ref('')
-const condicionFiltro = ref<EstadoCondicionPublicacion | ''>('')
-const mostrarFiltros = ref(false)
 
-const CONDICION_OPCIONES: { value: EstadoCondicionPublicacion | ''; label: string }[] = [
-  { value: '', label: 'Todas las condiciones' },
-  { value: EstadoCondicionPublicacion.NUEVO, label: 'Nuevo' },
-  { value: EstadoCondicionPublicacion.COMO_NUEVO, label: 'Como nuevo' },
-  { value: EstadoCondicionPublicacion.BUEN_ESTADO, label: 'Buen estado' },
-  { value: EstadoCondicionPublicacion.ACEPTABLE, label: 'Aceptable' },
-]
 
-// ---------------------------------------------------------------------------
-// Carga de datos
-// ---------------------------------------------------------------------------
+
+
+// Carga de datos desde la API
 
 async function cargarPublicaciones(): Promise<void> {
   cargando.value = true
@@ -78,12 +67,7 @@ function buscar(): void {
   cargarPublicaciones()
 }
 
-function limpiarFiltros(): void {
-  busqueda.value = ''
-  condicionFiltro.value = ''
-  paginaActual.value = 0
-  cargarPublicaciones()
-}
+
 
 function irAPagina(pagina: number): void {
   if (pagina < 0 || pagina >= totalPaginas.value) return
@@ -96,9 +80,7 @@ function verDetalle(id: number): void {
   router.push({ name: 'detalle-publicacion', params: { id } })
 }
 
-// ---------------------------------------------------------------------------
-// Paginacion: rango de paginas visibles
-// ---------------------------------------------------------------------------
+// Páginas visibles en el paginador
 
 function paginasVisibles(): number[] {
   const total = totalPaginas.value
@@ -117,45 +99,47 @@ onMounted(() => cargarPublicaciones())
 
 <template>
   <section class="flex flex-col gap-5">
-    <!-- Encabezado -->
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h1 class="text-xl font-bold text-gray-900">Catalogo</h1>
-        <p v-if="!cargando && totalElementos > 0" class="text-sm text-gray-500">
-          {{ totalElementos }} publicacion{{ totalElementos !== 1 ? 'es' : '' }} encontrada{{ totalElementos !== 1 ? 's' : '' }}
-        </p>
-      </div>
-
-      <!-- Barra de busqueda -->
-      <div class="flex items-center gap-2">
-        <div class="relative flex-1 sm:w-72 sm:flex-none">
-          <PhMagnifyingGlass
-            class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-            :size="16"
-            weight="bold"
-          />
-          <input
-            v-model="busqueda"
-            type="search"
-            placeholder="Buscar publicaciones..."
-            class="w-full rounded-md border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 outline-none transition-colors duration-150 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/15"
-            @keydown.enter="buscar"
-          />
+    <!-- Título y barra de búsqueda -->
+    <div class="sticky top-[var(--topbar-height)] z-10 -mt-6 bg-gray-100 pt-6 pb-2">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 class="text-xl font-bold text-gray-900">Catálogo</h1>
+          <p v-if="!cargando && totalElementos > 0" class="text-sm text-gray-500">
+            {{ totalElementos }} publicacion{{ totalElementos !== 1 ? 'es' : '' }} encontrada{{ totalElementos !== 1 ? 's' : '' }}
+          </p>
         </div>
 
-        <button
-          type="button"
-          class="hidden rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-[var(--primary-dark)] sm:inline-flex"
-          @click="buscar"
-        >
-          Buscar
-        </button>
+        <!-- Barra de búsqueda por texto -->
+        <div class="flex items-center gap-2">
+          <div class="relative flex-1 sm:w-72 sm:flex-none">
+            <PhMagnifyingGlass
+              class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+              :size="16"
+              weight="bold"
+            />
+            <input
+              v-model="busqueda"
+              type="search"
+              placeholder="Buscar publicaciones..."
+              class="w-full rounded-md border border-gray-300 bg-white py-2 pl-9 pr-3 text-sm text-gray-900 placeholder-gray-400 outline-none transition-colors duration-150 focus:border-[var(--primary)] focus:ring-2 focus:ring-[var(--primary)]/15"
+              @keydown.enter="buscar"
+            />
+          </div>
+
+          <button
+            type="button"
+            class="hidden rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-[var(--primary-dark)] sm:inline-flex"
+            @click="buscar"
+          >
+            Buscar
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Panel de filtros eliminado (usando el de integración) -->
+    <!-- Los filtros ahora están en el sidebar del Layout -->
 
-    <!-- Estado de carga: skeleton -->
+    <!-- Mostrar skeletons mientras se obtienen los datos -->
     <div
       v-if="cargando"
       class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -174,7 +158,7 @@ onMounted(() => cargarPublicaciones())
       </div>
     </div>
 
-    <!-- Estado de error -->
+    <!-- Pantalla de error con botón de reintentar -->
     <div
       v-else-if="error"
       class="flex flex-col items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-8 text-center"
@@ -189,7 +173,7 @@ onMounted(() => cargarPublicaciones())
       </button>
     </div>
 
-    <!-- Estado vacio -->
+    <!-- Mostrar un mensaje si no hay resultados -->
     <div
       v-else-if="publicaciones.length === 0"
       class="flex flex-col items-center gap-2 rounded-lg border border-gray-200 bg-white p-12 text-center"
@@ -209,10 +193,10 @@ onMounted(() => cargarPublicaciones())
         />
       </svg>
       <p class="text-sm font-medium text-gray-500">No se encontraron publicaciones</p>
-      <p class="text-xs text-gray-400">Intente con otros criterios de busqueda</p>
+      <p class="text-xs text-gray-400">Intente con otros criterios de búsqueda</p>
     </div>
 
-    <!-- Grid de publicaciones -->
+    <!-- Grilla de resultados -->
     <div
       v-else
       class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -229,7 +213,7 @@ onMounted(() => cargarPublicaciones())
     <nav
       v-if="!cargando && totalPaginas > 1"
       class="flex items-center justify-center gap-1 pt-2"
-      aria-label="Paginacion"
+      aria-label="Paginación"
     >
       <button
         type="button"

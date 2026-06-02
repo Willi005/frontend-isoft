@@ -6,30 +6,27 @@ import {
   PhShoppingCart,
   PhMinus,
   PhPlus,
-  PhWarningCircle,
   PhCaretDown,
-  PhCaretUp
-} from '@phosphor-icons/vue'
-import { obtenerPublicacion, agregarAlCarrito } from '@/services/publicacionesService'
-import type { PublicacionDetalleResponse } from '@/types/publicaciones'
-import { EstadoCondicionPublicacion, EstadoModeracionPublicacion } from '@/types/publicaciones'
-import { getCloudinaryUrl } from '@/utils/cloudinary'
-import { 
+  PhCaretUp,
   PhMagnifyingGlassPlus, 
   PhMagnifyingGlassMinus, 
   PhX, 
   PhCaretLeft, 
   PhCaretRight
 } from '@phosphor-icons/vue'
+import { obtenerPublicacion, agregarAlCarrito } from '@/services/publicacionesService'
+import type { PublicacionDetalleResponse } from '@/types/publicaciones'
+import { EstadoModeracionPublicacion } from '@/types/publicaciones'
+import { getCloudinaryUrl } from '@/utils/cloudinary'
+import { CONDICION_LABELS, CONDICION_CLASES } from '@/utils/useCondicionLabels'
+import { formatPrecio, formatFechaLarga } from '@/utils/useFormatters'
 
 const route = useRoute()
 const router = useRouter()
 
 const publicacionId = Number(route.params.id)
 
-// ---------------------------------------------------------------------------
-// Estado
-// ---------------------------------------------------------------------------
+// Estado local
 
 const publicacion = ref<PublicacionDetalleResponse | null>(null)
 const cargando = ref(true)
@@ -42,33 +39,16 @@ const mensajeCarrito = ref<string | null>(null)
 
 const mostrarTodasCaracteristicas = ref(false)
 
-// ---------------------------------------------------------------------------
-// Labels
-// ---------------------------------------------------------------------------
+// Mapeo visual de estados
 
-const CONDICION_LABELS: Record<EstadoCondicionPublicacion, string> = {
-  [EstadoCondicionPublicacion.NUEVO]: 'Nuevo',
-  [EstadoCondicionPublicacion.COMO_NUEVO]: 'Como nuevo',
-  [EstadoCondicionPublicacion.BUEN_ESTADO]: 'Buen estado',
-  [EstadoCondicionPublicacion.ACEPTABLE]: 'Aceptable',
-}
-
-const CONDICION_CLASES: Record<EstadoCondicionPublicacion, string> = {
-  [EstadoCondicionPublicacion.NUEVO]: 'bg-emerald-100 text-emerald-700',
-  [EstadoCondicionPublicacion.COMO_NUEVO]: 'bg-sky-100 text-sky-700',
-  [EstadoCondicionPublicacion.BUEN_ESTADO]: 'bg-amber-100 text-amber-700',
-  [EstadoCondicionPublicacion.ACEPTABLE]: 'bg-gray-100 text-gray-600',
-}
 
 const MODERACION_CONFIG: Record<EstadoModeracionPublicacion, { label: string; clases: string }> = {
   [EstadoModeracionPublicacion.APROBADA]: { label: 'Aprobada', clases: 'bg-emerald-100 text-emerald-700' },
   [EstadoModeracionPublicacion.RECHAZADA]: { label: 'Rechazada', clases: 'bg-red-100 text-red-700' },
-  [EstadoModeracionPublicacion.PENDIENTE]: { label: 'Pendiente de revision', clases: 'bg-amber-100 text-amber-700' },
+  [EstadoModeracionPublicacion.PENDIENTE]: { label: 'Pendiente de revisión', clases: 'bg-amber-100 text-amber-700' },
 }
 
-// ---------------------------------------------------------------------------
-// Computed
-// ---------------------------------------------------------------------------
+// Datos calculados
 
 const imagenPrincipal = computed(() => {
   if (!publicacion.value || !publicacion.value.imagenesUrls || publicacion.value.imagenesUrls.length === 0) {
@@ -105,9 +85,9 @@ function siguienteImagen() {
   if (imagenSeleccionada.value < publicacion.value.imagenesUrls.length - 1) {
     imagenSeleccionada.value++
   } else {
-    imagenSeleccionada.value = 0 // loop al inicio
+    imagenSeleccionada.value = 0 // Si llegamos a la última, volvemos a la primera imagen
   }
-  zoomNivel.value = 1 // resetear zoom
+  zoomNivel.value = 1 // Quitamos el zoom al cambiar de imagen
 }
 
 function imagenAnterior() {
@@ -115,32 +95,15 @@ function imagenAnterior() {
   if (imagenSeleccionada.value > 0) {
     imagenSeleccionada.value--
   } else {
-    imagenSeleccionada.value = publicacion.value.imagenesUrls.length - 1 // loop al final
+    imagenSeleccionada.value = publicacion.value.imagenesUrls.length - 1 // Si estamos en la primera y retrocedemos, vamos a la última
   }
-  zoomNivel.value = 1 // resetear zoom
+  zoomNivel.value = 1 // Quitamos el zoom al cambiar de imagen
 }
 
 const tieneStock = computed(() => publicacion.value !== null && publicacion.value.stock > 0)
 
-// ---------------------------------------------------------------------------
-// Funciones
-// ---------------------------------------------------------------------------
+// Métodos principales del componente
 
-function formatPrecio(valor: number): string {
-  return valor.toLocaleString('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0,
-  })
-}
-
-function formatFecha(fecha: string): string {
-  return new Date(fecha).toLocaleDateString('es-CL', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
-}
 
 async function cargarPublicacion(): Promise<void> {
   cargando.value = true
@@ -150,7 +113,7 @@ async function cargarPublicacion(): Promise<void> {
     publicacion.value = await obtenerPublicacion(publicacionId)
     imagenSeleccionada.value = 0
   } catch {
-    errorCarga.value = 'No se pudo cargar la publicacion.'
+    errorCarga.value = 'No se pudo cargar la publicación.'
   } finally {
     cargando.value = false
   }
@@ -171,7 +134,7 @@ async function onAgregarCarrito(): Promise<void> {
   try {
     await agregarAlCarrito(publicacion.value.id, cantidad.value)
     
-    // Soft reset: actualizar stock local y reiniciar cantidad
+    // Actualizamos el stock disponible localmente y reseteamos el contador
     publicacion.value.stock -= cantidad.value
     cantidad.value = 1
     
@@ -193,7 +156,7 @@ onMounted(() => cargarPublicacion())
 
 <template>
   <section class="flex flex-col gap-6">
-    <!-- Boton volver -->
+    <!-- Botón para regresar -->
     <button
       type="button"
       class="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors duration-150 hover:text-gray-700"
@@ -203,7 +166,7 @@ onMounted(() => cargarPublicacion())
       Volver atrás
     </button>
 
-    <!-- Estado de carga -->
+    <!-- Loading state -->
     <div v-if="cargando" class="grid grid-cols-1 gap-8 md:grid-cols-2">
       <div class="aspect-square animate-pulse rounded-lg bg-gray-200" />
       <div class="flex flex-col gap-4">
@@ -214,7 +177,7 @@ onMounted(() => cargarPublicacion())
       </div>
     </div>
 
-    <!-- Error -->
+    <!-- Mensaje de error -->
     <div
       v-else-if="errorCarga"
       class="flex flex-col items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-8 text-center"
@@ -229,11 +192,11 @@ onMounted(() => cargarPublicacion())
       </button>
     </div>
 
-    <!-- Contenido -->
+    <!-- Información detallada del producto -->
     <div v-else-if="publicacion" class="grid grid-cols-1 gap-8 md:grid-cols-2">
-      <!-- Columna izquierda: Galeria -->
+      <!-- Sección izquierda con las imágenes -->
       <div class="flex flex-col gap-3">
-        <!-- Imagen principal -->
+        <!-- Imagen grande seleccionada -->
         <div 
           class="aspect-square w-full overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm cursor-pointer relative group"
           @click="abrirModalImagen"
@@ -244,7 +207,7 @@ onMounted(() => cargarPublicacion())
             :alt="publicacion.titulo"
             class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
           />
-          <!-- Icono indicador de expandir -->
+          <!-- Icono de lupa para indicar que se puede hacer clic -->
           <div v-if="imagenPrincipal" class="absolute bottom-4 right-4 rounded-full bg-white/80 p-2 text-gray-700 shadow-sm backdrop-blur-sm opacity-0 transition-opacity duration-200 group-hover:opacity-100">
             <PhMagnifyingGlassPlus :size="20" />
           </div>
@@ -269,7 +232,7 @@ onMounted(() => cargarPublicacion())
           </div>
         </div>
 
-        <!-- Thumbnails -->
+        <!-- Galería de imágenes pequeñas -->
         <div
           v-if="publicacion.imagenesUrls.length > 1"
           class="grid grid-cols-4 gap-3 sm:grid-cols-5 md:grid-cols-4 lg:grid-cols-5"
@@ -291,9 +254,9 @@ onMounted(() => cargarPublicacion())
         </div>
       </div>
 
-      <!-- Columna derecha: Informacion -->
+      <!-- Sección derecha con la información y botones -->
       <div class="flex flex-col gap-4">
-        <!-- Moderacion -->
+        <!-- Estado de revisión por parte del administrador -->
         <div
           v-if="publicacion.estadoModeracion !== 'APROBADA'"
           :class="[
@@ -304,7 +267,7 @@ onMounted(() => cargarPublicacion())
           {{ MODERACION_CONFIG[publicacion.estadoModeracion].label }}
         </div>
 
-        <!-- Condicion -->
+        <!-- Estado del producto (nuevo, usado, etc.) -->
         <span
           :class="[
             'inline-flex w-fit items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
@@ -314,17 +277,17 @@ onMounted(() => cargarPublicacion())
           {{ CONDICION_LABELS[publicacion.condicion] }}
         </span>
 
-        <!-- Titulo -->
+        <!-- Título de la publicación -->
         <h1 class="text-2xl font-bold leading-tight text-gray-900">
           {{ publicacion.titulo }}
         </h1>
 
-        <!-- Precio -->
+        <!-- Precio formateado -->
         <p class="text-3xl font-bold text-[var(--primary)]">
           {{ formatPrecio(publicacion.precio) }}
         </p>
 
-        <!-- Stock -->
+        <!-- Cantidad disponible -->
         <div class="flex items-center gap-2">
           <span
             :class="[
@@ -336,7 +299,7 @@ onMounted(() => cargarPublicacion())
           </span>
         </div>
 
-        <!-- Selector de cantidad y boton carrito -->
+        <!-- Controles para agregar al carrito -->
         <div v-if="tieneStock" class="flex flex-col gap-3 rounded-lg border border-gray-200 bg-gray-50 p-4">
           <div class="flex items-center gap-3">
             <span class="text-sm font-medium text-gray-700">Cantidad:</span>
@@ -373,7 +336,7 @@ onMounted(() => cargarPublicacion())
             {{ agregandoCarrito ? 'Agregando...' : 'Agregar al carrito' }}
           </button>
 
-          <!-- Mensaje de feedback -->
+          <!-- Mensaje temporal después de agregar al carrito -->
           <p
             v-if="mensajeCarrito"
             :class="[
@@ -385,15 +348,15 @@ onMounted(() => cargarPublicacion())
           </p>
         </div>
 
-        <!-- Descripcion -->
+        <!-- Texto descriptivo del producto -->
         <div class="border-t border-gray-200 pt-4">
-          <h2 class="mb-2 text-sm font-semibold text-gray-900">Descripcion</h2>
+          <h2 class="mb-2 text-sm font-semibold text-gray-900">Descripción</h2>
           <p class="whitespace-pre-line text-sm leading-relaxed text-gray-600">
             {{ publicacion.descripcion }}
           </p>
         </div>
 
-        <!-- Especificaciones del Producto (Simulado) -->
+        <!-- Tabla de características (datos simulados por ahora) -->
         <div class="border-t border-gray-200 pt-4">
           <h2 class="mb-3 text-sm font-semibold text-gray-900">Características principales</h2>
           <div class="grid grid-cols-1 gap-3 text-sm md:grid-cols-2">
@@ -436,30 +399,30 @@ onMounted(() => cargarPublicacion())
           </button>
         </div>
 
-        <!-- Razon de rechazo -->
+        <!-- Mostrar por qué se rechazó la publicación -->
         <div
           v-if="publicacion.razonRechazo"
           class="rounded-lg border border-red-200 bg-red-50 p-4"
         >
-          <h3 class="mb-1 text-sm font-semibold text-red-700">Razon de rechazo</h3>
+          <h3 class="mb-1 text-sm font-semibold text-red-700">Razón de rechazo</h3>
           <p class="text-sm text-red-600">{{ publicacion.razonRechazo }}</p>
         </div>
 
-        <!-- Metadatos -->
+        <!-- Fecha de publicación y otros datos -->
         <div class="flex flex-col gap-1 border-t border-gray-200 pt-4 text-xs text-gray-400">
-          <span>Publicado el {{ formatFecha(publicacion.fechaCreacion) }}</span>
+          <span>Publicado el {{ formatFechaLarga(publicacion.fechaCreacion) }}</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Modal de Imagen -->
+  <!-- Modal para ver la imagen en pantalla completa -->
   <Teleport to="body">
     <div
       v-if="modalImagenAbierto && imagenPrincipal"
       class="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm"
     >
-      <!-- Toolbar -->
+      <!-- Botones de control del modal -->
       <div class="absolute top-4 right-4 z-10 flex gap-4">
         <button
           @click="hacerZoomOut"
@@ -484,7 +447,7 @@ onMounted(() => cargarPublicacion())
         </button>
       </div>
 
-      <!-- Imagen con Zoom -->
+      <!-- Imagen a tamaño completo -->
       <div 
         class="flex h-full w-full items-center justify-center overflow-auto p-4"
         @click.self="cerrarModalImagen"
@@ -492,13 +455,13 @@ onMounted(() => cargarPublicacion())
         <img
           :src="imagenPrincipal"
           :style="{ transform: `scale(${zoomNivel})`, transformOrigin: 'center center' }"
-          class="max-h-[90vh] max-w-[90vw] object-contain transition-transform duration-300"
+          class="max-h-[90vh] max-w-[90vw] h-full w-full object-contain transition-transform duration-300"
           alt="Imagen ampliada"
         />
       </div>
 
-      <!-- Controles de navegación de galería -->
-      <template v-if="publicacion.imagenesUrls.length > 1">
+      <!-- Botones de anterior/siguiente -->
+      <template v-if="publicacion && publicacion.imagenesUrls.length > 1">
         <button
           @click="imagenAnterior"
           class="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/50 p-3 text-white transition-colors hover:bg-black/70 z-10"

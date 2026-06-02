@@ -11,12 +11,11 @@ import {
 } from '@/services/publicacionesService'
 import type { PublicacionListaResponse } from '@/types/publicaciones'
 import { EstadoPublicacion } from '@/types/publicaciones'
+import { cuentasFacade } from '@/services/cuentasFacade'
 
 const router = useRouter()
 
-// ---------------------------------------------------------------------------
-// Estado
-// ---------------------------------------------------------------------------
+// Estado local
 
 const publicaciones = ref<PublicacionListaResponse[]>([])
 const cargando = ref(false)
@@ -26,19 +25,17 @@ const paginaActual = ref(0)
 const totalPaginas = ref(0)
 const totalElementos = ref(0)
 
-// Estado del modal de eliminacion
+// Variables para controlar el modal de eliminación
 const modalEliminar = ref(false)
 const publicacionAEliminar = ref<number | null>(null)
 const eliminando = ref(false)
 
-// Estado del modal de cambio de estado
+// Control del modal para pausar/activar
 const modalEstado = ref(false)
 const publicacionACambiar = ref<{ id: number; estado: EstadoPublicacion } | null>(null)
 const cambiandoEstado = ref(false)
 
-// ---------------------------------------------------------------------------
-// Carga de datos
-// ---------------------------------------------------------------------------
+// Carga de datos desde la API
 
 async function cargarPublicaciones(): Promise<void> {
   cargando.value = true
@@ -48,7 +45,7 @@ async function cargarPublicaciones(): Promise<void> {
     const respuesta = await buscarPublicaciones({
       page: paginaActual.value,
       size: 10,
-      vendedorId: 1, // Simulando al usuario logueado
+      vendedorId: cuentasFacade.obtenerUsuarioActual().id,
     })
     
     publicaciones.value = respuesta.content
@@ -61,9 +58,7 @@ async function cargarPublicaciones(): Promise<void> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Navegacion
-// ---------------------------------------------------------------------------
+// Navegación
 
 function irACrear(): void {
   router.push({ name: 'crear-publicacion' })
@@ -77,9 +72,7 @@ function verDetalle(id: number): void {
   router.push({ name: 'detalle-publicacion', params: { id } })
 }
 
-// ---------------------------------------------------------------------------
-// Eliminacion
-// ---------------------------------------------------------------------------
+// Manejo de eliminación
 
 function solicitarEliminacion(id: number): void {
   publicacionAEliminar.value = id
@@ -96,7 +89,7 @@ async function confirmarEliminacion(): Promise<void> {
     publicacionAEliminar.value = null
     await cargarPublicaciones()
   } catch {
-    error.value = 'No se pudo eliminar la publicacion.'
+    error.value = 'No se pudo eliminar la publicación.'
   } finally {
     eliminando.value = false
   }
@@ -107,9 +100,7 @@ function cancelarEliminacion(): void {
   publicacionAEliminar.value = null
 }
 
-// ---------------------------------------------------------------------------
-// Cambio de estado
-// ---------------------------------------------------------------------------
+// Activación y pausa
 
 function solicitarCambioEstado(id: number, estado: EstadoPublicacion): void {
   publicacionACambiar.value = { id, estado }
@@ -125,8 +116,8 @@ async function confirmarCambioEstado(): Promise<void> {
       publicacionACambiar.value.id,
       publicacionACambiar.value.estado,
     )
-    // Actualizar localmente en lugar de recargar del backend
-    // (el endpoint publico solo devuelve activas, asi las pausadas desaparecerian)
+    // Actualizamos el valor localmente para evitar una recarga completa desde el backend
+    // Como el endpoint público solo devuelve activas, si recargamos una pausada desaparecería de la vista
     const index = publicaciones.value.findIndex(
       (p) => p.id === publicacionACambiar.value!.id,
     )
@@ -139,7 +130,7 @@ async function confirmarCambioEstado(): Promise<void> {
     modalEstado.value = false
     publicacionACambiar.value = null
   } catch {
-    error.value = 'No se pudo cambiar el estado de la publicacion.'
+    error.value = 'No se pudo cambiar el estado de la publicación.'
   } finally {
     cambiandoEstado.value = false
   }
@@ -150,9 +141,7 @@ function cancelarCambioEstado(): void {
   publicacionACambiar.value = null
 }
 
-// ---------------------------------------------------------------------------
-// Paginacion
-// ---------------------------------------------------------------------------
+// Lógica de paginación
 
 function irAPagina(pagina: number): void {
   if (pagina < 0 || pagina >= totalPaginas.value) return
@@ -165,7 +154,7 @@ onMounted(() => cargarPublicaciones())
 
 <template>
   <section class="flex flex-col gap-5">
-    <!-- Boton volver -->
+    <!-- Botón para regresar -->
     <button
       type="button"
       class="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors duration-150 hover:text-gray-700 mb-2"
@@ -175,7 +164,7 @@ onMounted(() => cargarPublicaciones())
       Volver atrás
     </button>
 
-    <!-- Encabezado -->
+    <!-- Título y barra de búsqueda -->
     <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-xl font-bold text-gray-900">Mis publicaciones</h1>
@@ -190,11 +179,11 @@ onMounted(() => cargarPublicaciones())
         @click="irACrear"
       >
         <PhPlus :size="16" weight="bold" />
-        Nueva publicacion
+        Nueva publicación
       </button>
     </div>
 
-    <!-- Error -->
+    <!-- Mensaje de error -->
     <div
       v-if="error"
       class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
@@ -202,7 +191,7 @@ onMounted(() => cargarPublicaciones())
       {{ error }}
     </div>
 
-    <!-- Estado de carga -->
+    <!-- Loading state -->
     <div v-if="cargando" class="overflow-hidden rounded-lg border border-gray-200 bg-white">
       <div
         v-for="n in 5"
@@ -223,7 +212,7 @@ onMounted(() => cargarPublicaciones())
       </div>
     </div>
 
-    <!-- Estado vacio -->
+    <!-- Mostrar un mensaje si no hay resultados -->
     <div
       v-else-if="publicaciones.length === 0 && !error"
       class="flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-12 text-center"
@@ -242,25 +231,25 @@ onMounted(() => cargarPublicaciones())
           d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m3.75 9v6m3-3H9m1.5-12H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
         />
       </svg>
-      <p class="text-sm font-medium text-gray-500">No tiene publicaciones</p>
+      <p class="text-sm font-medium text-gray-500">No tienes publicaciones</p>
       <button
         type="button"
         class="mt-1 inline-flex items-center gap-2 rounded-md bg-[var(--primary)] px-4 py-2 text-sm font-medium text-white transition-colors duration-150 hover:bg-[var(--primary-dark)]"
         @click="irACrear"
       >
         <PhPlus :size="16" weight="bold" />
-        Crear primera publicacion
+        Crear primera publicación
       </button>
     </div>
 
-    <!-- Lista de publicaciones -->
+    <!-- Lista principal -->
     <div
       v-else
       class="overflow-hidden rounded-lg border border-gray-200 bg-white"
     >
-      <!-- Header de la tabla (desktop) -->
+      <!-- Encabezado de la tabla (solo visible en escritorio) -->
       <div class="hidden items-center gap-4 border-b border-gray-200 bg-gray-50 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-gray-500 md:flex">
-        <div class="w-16 flex-shrink-0"></div> <!-- Espacio miniatura -->
+        <div class="w-16 flex-shrink-0"></div> <!-- Espaciador para la columna de la imagen -->
         <div class="min-w-0 flex-1">Producto</div>
         <div class="mr-2 w-32 text-right lg:w-40">Detalles</div>
         <div class="w-24 flex-shrink-0 text-center sm:w-28">Estado</div>
@@ -282,7 +271,7 @@ onMounted(() => cargarPublicaciones())
     <nav
       v-if="!cargando && totalPaginas > 1"
       class="flex items-center justify-center gap-1 pt-2"
-      aria-label="Paginacion"
+      aria-label="Paginación"
     >
       <button
         type="button"
@@ -294,7 +283,7 @@ onMounted(() => cargarPublicaciones())
       </button>
 
       <span class="px-3 text-sm text-gray-500">
-        Pagina {{ paginaActual + 1 }} de {{ totalPaginas }}
+        Página {{ paginaActual + 1 }} de {{ totalPaginas }}
       </span>
 
       <button
@@ -307,25 +296,25 @@ onMounted(() => cargarPublicaciones())
       </button>
     </nav>
 
-    <!-- Modal de eliminacion -->
+    <!-- Modal de confirmación para borrar -->
     <ConfirmacionModal
       :is-open="modalEliminar"
-      titulo="Eliminar publicacion"
-      mensaje="Esta accion eliminara la publicacion de forma permanente. Esta seguro de que desea continuar?"
+      titulo="Eliminar publicación"
+      mensaje="Esta acción eliminará la publicación de forma permanente. ¿Está seguro de que desea continuar?"
       texto-confirmar="Eliminar"
       variante="danger"
       @confirmar="confirmarEliminacion"
       @cancelar="cancelarEliminacion"
     />
 
-    <!-- Modal de cambio de estado -->
+    <!-- Modal de confirmación para pausar/activar -->
     <ConfirmacionModal
       :is-open="modalEstado"
       titulo="Cambiar estado"
       :mensaje="
         publicacionACambiar?.estado === 'EN_PAUSA'
-          ? 'La publicacion sera pausada y dejara de ser visible en el catalogo.'
-          : 'La publicacion sera activada y sera visible en el catalogo.'
+          ? 'La publicación será pausada y dejará de ser visible en el catálogo.'
+          : 'La publicación será activada y será visible en el catálogo.'
       "
       texto-confirmar="Confirmar"
       variante="primary"

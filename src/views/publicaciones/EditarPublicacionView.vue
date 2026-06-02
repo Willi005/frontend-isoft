@@ -20,9 +20,7 @@ const errorCarga = ref<string | null>(null)
 
 const publicacionId = Number(route.params.id)
 
-// ---------------------------------------------------------------------------
-// Carga inicial
-// ---------------------------------------------------------------------------
+// Inicialización
 
 async function cargarDatos(): Promise<void> {
   cargandoDatos.value = true
@@ -31,15 +29,13 @@ async function cargarDatos(): Promise<void> {
   try {
     datosIniciales.value = await obtenerPublicacion(publicacionId)
   } catch {
-    errorCarga.value = 'No se pudo cargar la publicacion. Verifique el ID e intente nuevamente.'
+    errorCarga.value = 'No se pudo cargar la publicación. Verifique el ID e intente nuevamente.'
   } finally {
     cargandoDatos.value = false
   }
 }
 
-// ---------------------------------------------------------------------------
-// Submit
-// ---------------------------------------------------------------------------
+// Guardado de datos
 
 async function onSubmit(payload: {
   datos: any
@@ -56,7 +52,7 @@ async function onSubmit(payload: {
     )
     router.push({ name: 'gestion-publicaciones' })
   } catch {
-    errorMsg.value = 'No se pudo guardar los cambios. Verifique los datos e intente nuevamente.'
+    errorMsg.value = 'No se pudieron guardar los cambios. Verifique los datos e intente nuevamente.'
   } finally {
     cargandoSubmit.value = false
   }
@@ -71,7 +67,7 @@ onMounted(() => cargarDatos())
 
 <template>
   <section class="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 lg:px-0">
-    <!-- Boton volver atras -->
+    <!-- Botón para volver a la vista anterior -->
     <button
       type="button"
       class="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-gray-500 transition-colors duration-150 hover:text-gray-700"
@@ -81,7 +77,7 @@ onMounted(() => cargarDatos())
       Volver atrás
     </button>
 
-    <!-- Encabezado -->
+    <!-- Título y barra de búsqueda -->
     <div>
       <h1 class="text-2xl font-bold leading-8 text-gray-900">
         Editar Publicación
@@ -91,7 +87,7 @@ onMounted(() => cargarDatos())
       </p>
     </div>
 
-    <!-- Estado de carga inicial -->
+    <!-- Skeleton loading para la carga inicial -->
     <div
       v-if="cargandoDatos"
       class="grid grid-cols-1 gap-5 lg:grid-cols-2"
@@ -106,7 +102,7 @@ onMounted(() => cargarDatos())
       </div>
     </div>
 
-    <!-- Error de carga -->
+    <!-- Mensaje de error si la petición falla -->
     <div
       v-else-if="errorCarga"
       class="flex flex-col items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-8 text-center"
@@ -121,9 +117,9 @@ onMounted(() => cargarDatos())
       </button>
     </div>
 
-    <!-- Formulario de edicion -->
+    <!-- Formulario para editar la publicación -->
     <template v-else-if="datosIniciales">
-      <!-- Error de submit -->
+      <!-- Mostrar error si el envío falla -->
       <div
         v-if="errorMsg"
         class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"

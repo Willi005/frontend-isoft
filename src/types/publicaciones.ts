@@ -5,28 +5,31 @@
 //               com.mercadoufro.model.EstadoPublicacion
 // ---------------------------------------------------------------------------
 
-export enum EstadoCondicionPublicacion {
-  NUEVO = 'NUEVO',
-  COMO_NUEVO = 'COMO_NUEVO',
-  BUEN_ESTADO = 'BUEN_ESTADO',
-  ACEPTABLE = 'ACEPTABLE',
-}
+export const EstadoCondicionPublicacion = {
+  NUEVO: 'NUEVO',
+  COMO_NUEVO: 'COMO_NUEVO',
+  BUEN_ESTADO: 'BUEN_ESTADO',
+  ACEPTABLE: 'ACEPTABLE',
+} as const
+export type EstadoCondicionPublicacion = (typeof EstadoCondicionPublicacion)[keyof typeof EstadoCondicionPublicacion]
 
-export enum EstadoModeracionPublicacion {
-  APROBADA = 'APROBADA',
-  RECHAZADA = 'RECHAZADA',
-  PENDIENTE = 'PENDIENTE',
-}
+export const EstadoModeracionPublicacion = {
+  APROBADA: 'APROBADA',
+  RECHAZADA: 'RECHAZADA',
+  PENDIENTE: 'PENDIENTE',
+} as const
+export type EstadoModeracionPublicacion = (typeof EstadoModeracionPublicacion)[keyof typeof EstadoModeracionPublicacion]
 
-export enum EstadoPublicacion {
-  ACTIVA = 'ACTIVA',
-  EN_PAUSA = 'EN_PAUSA',
-  DESHABILITADA = 'DESHABILITADA',
-  ELIMINADA = 'ELIMINADA',
-}
+export const EstadoPublicacion = {
+  ACTIVA: 'ACTIVA',
+  EN_PAUSA: 'EN_PAUSA',
+  DESHABILITADA: 'DESHABILITADA',
+  ELIMINADA: 'ELIMINADA',
+} as const
+export type EstadoPublicacion = (typeof EstadoPublicacion)[keyof typeof EstadoPublicacion]
 
 // ---------------------------------------------------------------------------
-// Request DTOs
+// Interfaces de lo que enviamos al backend
 // Derivados de: com.mercadoufro.dto.request.*
 // ---------------------------------------------------------------------------
 
@@ -49,7 +52,7 @@ export interface EditarPublicacionRequest {
 }
 
 // ---------------------------------------------------------------------------
-// Response DTOs
+// Interfaces de lo que recibimos del backend
 // Derivados de: com.mercadoufro.dto.response.*
 // ---------------------------------------------------------------------------
 
@@ -99,40 +102,7 @@ export interface ItemCarritoResponse {
 }
 
 // ---------------------------------------------------------------------------
-// Wrapper generico para respuestas paginadas de Spring Data (Page<T>)
-// ---------------------------------------------------------------------------
-
-export interface SortInfo {
-  sorted: boolean
-  unsorted: boolean
-  empty: boolean
-}
-
-export interface PageableInfo {
-  pageNumber: number
-  pageSize: number
-  offset: number
-  paged: boolean
-  unpaged: boolean
-  sort: SortInfo
-}
-
-export interface PageResponse<T> {
-  content: T[]
-  pageable: PageableInfo
-  totalElements: number
-  totalPages: number
-  size: number
-  number: number
-  numberOfElements: number
-  first: boolean
-  last: boolean
-  empty: boolean
-  sort: SortInfo
-}
-
-// ---------------------------------------------------------------------------
-// Parametros auxiliares para consultas
+// Parámetros auxiliares para consultas
 // ---------------------------------------------------------------------------
 
 export interface BuscarPublicacionesParams {
@@ -148,3 +118,6 @@ export interface BuscarPublicacionesParams {
 }
 
 export type OperacionStock = 'SUMA' | 'RESTA'
+
+// Re-exportar tipos de paginación desde shared para conveniencia
+export type { PageResponse, PageableInfo, SortInfo } from '@/types/pagination'

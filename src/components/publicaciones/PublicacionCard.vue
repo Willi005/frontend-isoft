@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { PublicacionListaResponse } from '@/types/publicaciones'
-import { EstadoCondicionPublicacion } from '@/types/publicaciones'
 import { getCloudinaryUrl } from '@/utils/cloudinary'
+import { CONDICION_LABELS, CONDICION_CLASES } from '@/utils/useCondicionLabels'
+import { formatPrecio } from '@/utils/useFormatters'
 
 interface Props {
   publicacion: PublicacionListaResponse
@@ -18,28 +19,6 @@ const imagenError = ref(false)
 
 function onImageError(): void {
   imagenError.value = true
-}
-
-const CONDICION_LABELS: Record<EstadoCondicionPublicacion, string> = {
-  [EstadoCondicionPublicacion.NUEVO]: 'Nuevo',
-  [EstadoCondicionPublicacion.COMO_NUEVO]: 'Como nuevo',
-  [EstadoCondicionPublicacion.BUEN_ESTADO]: 'Buen estado',
-  [EstadoCondicionPublicacion.ACEPTABLE]: 'Aceptable',
-}
-
-const CONDICION_CLASES: Record<EstadoCondicionPublicacion, string> = {
-  [EstadoCondicionPublicacion.NUEVO]: 'bg-emerald-100 text-emerald-700',
-  [EstadoCondicionPublicacion.COMO_NUEVO]: 'bg-sky-100 text-sky-700',
-  [EstadoCondicionPublicacion.BUEN_ESTADO]: 'bg-amber-100 text-amber-700',
-  [EstadoCondicionPublicacion.ACEPTABLE]: 'bg-gray-100 text-gray-600',
-}
-
-function formatPrecio(valor: number): string {
-  return valor.toLocaleString('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0,
-  })
 }
 </script>
 
@@ -83,7 +62,7 @@ function formatPrecio(valor: number): string {
       </div>
     </div>
 
-    <!-- Contenido -->
+    <!-- Información detallada del producto -->
     <div class="flex flex-1 flex-col gap-1.5 p-3">
       <span
         :class="[

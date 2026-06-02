@@ -16,7 +16,7 @@ const links = [
       <!-- Brand -->
       <div class="footer__brand">
         <div class="footer__logo">
-          <img src="../../assets/Logo_Ufro.png" alt="logo ufro"/>
+          <img src="@/assets/Logo_Ufro.png" alt="logo ufro"/>
         </div>
         <div>
           <p class="footer__brand-name">UFRO Market</p>

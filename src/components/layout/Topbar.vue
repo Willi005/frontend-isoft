@@ -31,7 +31,7 @@ const onSearch = () => emit('search', searchQuery.value)
       <!-- Logo -->
       <a class="topbar__logo" href="/">
         <div class="topbar__logo-icon">
-          <img src="../../assets/Logo_Ufro.png" alt="logo ufro" />
+          <img src="@/assets/Logo_Ufro.png" alt="logo ufro" />
         </div>
         <div class="topbar__logo-text">
           <span class="topbar__logo-brand">UFRO</span>

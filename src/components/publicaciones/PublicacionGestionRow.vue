@@ -7,8 +7,10 @@ import {
   PhPause,
 } from '@phosphor-icons/vue'
 import type { PublicacionListaResponse } from '@/types/publicaciones'
-import { EstadoPublicacion, EstadoCondicionPublicacion } from '@/types/publicaciones'
+import { EstadoPublicacion } from '@/types/publicaciones'
 import { getCloudinaryUrl } from '@/utils/cloudinary'
+import { CONDICION_LABELS } from '@/utils/useCondicionLabels'
+import { formatPrecio, formatFechaCorta } from '@/utils/useFormatters'
 
 interface Props {
   publicacion: PublicacionListaResponse
@@ -28,13 +30,6 @@ const emit = defineEmits<{
   (e: 'eliminar', id: number): void
   (e: 'ver-detalle', id: number): void
 }>()
-
-const CONDICION_LABELS: Record<EstadoCondicionPublicacion, string> = {
-  [EstadoCondicionPublicacion.NUEVO]: 'Nuevo',
-  [EstadoCondicionPublicacion.COMO_NUEVO]: 'Como nuevo',
-  [EstadoCondicionPublicacion.BUEN_ESTADO]: 'Buen estado',
-  [EstadoCondicionPublicacion.ACEPTABLE]: 'Aceptable',
-}
 
 const ESTADO_CONFIG: Record<EstadoPublicacion, { label: string; clases: string }> = {
   [EstadoPublicacion.ACTIVA]: {
@@ -62,23 +57,6 @@ const estaActiva = computed(
 const estadoToggle = computed(() =>
   estaActiva.value ? EstadoPublicacion.EN_PAUSA : EstadoPublicacion.ACTIVA,
 )
-
-function formatPrecio(valor: number): string {
-  return valor.toLocaleString('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    minimumFractionDigits: 0,
-  })
-}
-
-function formatFecha(fechaStr: string): string {
-  if (!fechaStr) return ''
-  const date = new Date(fechaStr)
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  return `${day}/${month}/${year}`
-}
 </script>
 
 <template>
@@ -146,7 +124,7 @@ function formatFecha(fechaStr: string): string {
         Stock: <strong class="font-medium text-gray-700">{{ publicacion.stock }} disponibles</strong>
       </span>
       <span class="text-xs text-gray-400">
-        Publicado el {{ formatFecha(publicacion.fechaCreacion) }}
+        Publicado el {{ formatFechaCorta(publicacion.fechaCreacion) }}
       </span>
     </div>
 
@@ -167,7 +145,7 @@ function formatFecha(fechaStr: string): string {
       <button
         type="button"
         class="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors duration-150 hover:bg-[var(--primary-light)] hover:text-[var(--primary)]"
-        aria-label="Editar publicacion"
+        aria-label="Editar publicación"
         @click="emit('editar', publicacion.id)"
       >
         <PhPencilSimple :size="18" weight="regular" />
@@ -176,7 +154,7 @@ function formatFecha(fechaStr: string): string {
       <button
         type="button"
         class="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors duration-150 hover:bg-[var(--primary-light)] hover:text-[var(--primary)]"
-        :aria-label="estaActiva ? 'Pausar publicacion' : 'Activar publicacion'"
+        :aria-label="estaActiva ? 'Pausar publicación' : 'Activar publicación'"
         @click="emit('cambiar-estado', publicacion.id, estadoToggle)"
       >
         <PhPause v-if="estaActiva" :size="20" weight="regular" />
@@ -186,7 +164,7 @@ function formatFecha(fechaStr: string): string {
       <button
         type="button"
         class="flex h-8 w-8 items-center justify-center rounded-md text-gray-400 transition-colors duration-150 hover:bg-red-50 hover:text-red-500"
-        aria-label="Eliminar publicacion"
+        aria-label="Eliminar publicación"
         @click="emit('eliminar', publicacion.id)"
       >
         <PhTrash :size="18" weight="regular" />
