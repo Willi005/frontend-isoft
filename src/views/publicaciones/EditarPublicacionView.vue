@@ -3,16 +3,16 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { PhArrowLeft } from '@phosphor-icons/vue'
 import PublicacionForm from '@/components/publicaciones/PublicacionForm.vue'
-import { obtenerPublicacion, editarPublicacion } from '@/services/publicacionesService'
+import { obtenerPublicacion, editarPublicacion } from '@/utils/mockStore'
 import type {
-  PublicacionDetalleResponse,
-  EditarPublicacionRequest,
-} from '@/types/publicaciones'
+  PublicacionDetalle,
+  EditarPublicacionData,
+} from '@/utils/mockStore'
 
 const router = useRouter()
 const route = useRoute()
 
-const datosIniciales = ref<PublicacionDetalleResponse | undefined>(undefined)
+const datosIniciales = ref<PublicacionDetalle | undefined>(undefined)
 const cargandoDatos = ref(true)
 const cargandoSubmit = ref(false)
 const errorMsg = ref<string | null>(null)
@@ -47,7 +47,7 @@ async function onSubmit(payload: {
   try {
     await editarPublicacion(
       publicacionId,
-      payload.datos as EditarPublicacionRequest,
+      payload.datos as EditarPublicacionData,
       payload.archivos,
     )
     router.push({ name: 'gestion-publicaciones' })
@@ -102,7 +102,7 @@ onMounted(() => cargarDatos())
       </div>
     </div>
 
-    <!-- Mensaje de error si la petición falla -->
+    <!-- Mensaje de error -->
     <div
       v-else-if="errorCarga"
       class="flex flex-col items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-8 text-center"

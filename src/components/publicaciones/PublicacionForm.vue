@@ -2,20 +2,19 @@
 import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import ImagenUploader from './ImagenUploader.vue'
 import type {
-  CrearPublicacionRequest,
-  EditarPublicacionRequest,
-  PublicacionDetalleResponse,
-} from '@/types/publicaciones'
-import { EstadoCondicionPublicacion } from '@/types/publicaciones'
+  CrearPublicacionData,
+  EditarPublicacionData,
+  PublicacionDetalle,
+} from '@/utils/mockStore'
+import { EstadoCondicionPublicacion } from '@/utils/mockStore'
 import { CONDICION_OPCIONES } from '@/utils/useCondicionLabels'
-import { catalogoFacade } from '@/services/catalogoFacade'
-import { cuentasFacade } from '@/services/cuentasFacade'
+import { catalogoFacade, cuentasFacade } from '@/utils/mockStore'
 
 // Props y emits
 
 interface Props {
   modo: 'crear' | 'editar'
-  datosIniciales?: PublicacionDetalleResponse
+  datosIniciales?: PublicacionDetalle
   cargando?: boolean
 }
 
@@ -26,7 +25,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'submit', payload: {
-    datos: CrearPublicacionRequest | EditarPublicacionRequest
+    datos: CrearPublicacionData | EditarPublicacionData
     archivos: File[]
   }): void
   (e: 'cancelar'): void
@@ -158,7 +157,7 @@ function onSubmit(): void {
   if (!validar()) return
 
   if (props.modo === 'crear') {
-    const datos: CrearPublicacionRequest = {
+    const datos: CrearPublicacionData = {
       titulo: form.titulo.trim(),
       descripcion: form.descripcion.trim(),
       precio: form.precio!,
@@ -169,7 +168,7 @@ function onSubmit(): void {
     }
     emit('submit', { datos, archivos: archivosNuevos.lista })
   } else {
-    const datos: EditarPublicacionRequest = {
+    const datos: EditarPublicacionData = {
       titulo: form.titulo.trim(),
       descripcion: form.descripcion.trim(),
       precio: form.precio!,

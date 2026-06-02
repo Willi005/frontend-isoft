@@ -3,8 +3,8 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { PhArrowLeft } from '@phosphor-icons/vue'
 import PublicacionForm from '@/components/publicaciones/PublicacionForm.vue'
-import { crearPublicacion } from '@/services/publicacionesService'
-import type { CrearPublicacionRequest } from '@/types/publicaciones'
+import { crearPublicacion } from '@/utils/mockStore'
+import type { CrearPublicacionData } from '@/utils/mockStore'
 
 const router = useRouter()
 const cargando = ref(false)
@@ -16,7 +16,7 @@ async function onSubmit(payload: { datos: any; archivos: File[] }): Promise<void
 
   try {
     await crearPublicacion(
-      payload.datos as CrearPublicacionRequest,
+      payload.datos as CrearPublicacionData,
       payload.archivos,
     )
     router.push({ name: 'gestion-publicaciones' })

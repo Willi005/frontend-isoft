@@ -14,9 +14,9 @@ import {
   PhCaretLeft, 
   PhCaretRight
 } from '@phosphor-icons/vue'
-import { obtenerPublicacion, agregarAlCarrito } from '@/services/publicacionesService'
-import type { PublicacionDetalleResponse } from '@/types/publicaciones'
-import { EstadoModeracionPublicacion } from '@/types/publicaciones'
+import { obtenerPublicacion, agregarAlCarrito } from '@/utils/mockStore'
+import type { PublicacionDetalle } from '@/utils/mockStore'
+import { EstadoModeracionPublicacion } from '@/utils/mockStore'
 import { getCloudinaryUrl } from '@/utils/cloudinary'
 import { CONDICION_LABELS, CONDICION_CLASES } from '@/utils/useCondicionLabels'
 import { formatPrecio, formatFechaLarga } from '@/utils/useFormatters'
@@ -28,7 +28,7 @@ const publicacionId = Number(route.params.id)
 
 // Estado local
 
-const publicacion = ref<PublicacionDetalleResponse | null>(null)
+const publicacion = ref<PublicacionDetalle | null>(null)
 const cargando = ref(true)
 const errorCarga = ref<string | null>(null)
 

@@ -1,22 +1,17 @@
 export function getCloudinaryUrl(publicIdOrUrl: string | null | undefined): string {
-  if (!publicIdOrUrl) return ''
+  if (!publicIdOrUrl) return 'https://placehold.co/400x400/eeeeee/cccccc?text=Sin+Imagen'
   
-  // Si ya es una URL completa (http/https), o una data URI, se retorna tal cual
-  if (publicIdOrUrl.startsWith('http://') || publicIdOrUrl.startsWith('https://') || publicIdOrUrl.startsWith('data:')) {
+  // Si ya es una URL completa (http/https), o una data URI, o blob, se retorna tal cual.
+  // Esto permite que el Uploader siga mostrando las imagenes seleccionadas localmente.
+  if (publicIdOrUrl.startsWith('http://') || publicIdOrUrl.startsWith('https://') || publicIdOrUrl.startsWith('data:') || publicIdOrUrl.startsWith('blob:')) {
     return publicIdOrUrl
   }
 
-  // De lo contrario, asumimos que es un public_id de Cloudinary
-  // El cloud name debe estar configurado en las variables de entorno
-  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'demo'
-  
-  // Limpiamos barras extra por si acaso
-  const cleanId = publicIdOrUrl.replace(/^\/+/, '')
-  
-  // Cloudinary normalmente necesita o la versión o la extensión.
-  // Añadiendo f_auto,q_auto nos aseguramos de que entregue el mejor formato.
-  // También añadimos la extensión .jpg si el public_id no tiene una.
-  const idWithExt = cleanId.includes('.') ? cleanId : `${cleanId}.jpg`
-  
-  return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto/${idWithExt}`
+  // Si es un string 'mock-image-X' que usamos en nuestros datos estaticos:
+  if (publicIdOrUrl.startsWith('mock-image')) {
+    return `https://placehold.co/600x400/var(--primary)/ffffff?text=Imagen+Simulada`
+  }
+
+  // Fallback genérico para maqueta
+  return `https://placehold.co/400x400/e2e8f0/64748b?text=Placeholder`
 }

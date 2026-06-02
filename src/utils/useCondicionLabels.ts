@@ -1,7 +1,7 @@
 // Composable: useCondicionLabels
 // Mapeos de condición reutilizables para el módulo de publicaciones.
 
-import { EstadoCondicionPublicacion } from '@/types/publicaciones'
+import { EstadoCondicionPublicacion } from '@/utils/mockStore'
 
 /** Labels legibles para cada condición. */
 export const CONDICION_LABELS: Record<EstadoCondicionPublicacion, string> = {

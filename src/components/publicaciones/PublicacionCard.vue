@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { PublicacionListaResponse } from '@/types/publicaciones'
+import type { PublicacionLista } from '@/utils/mockStore'
 import { getCloudinaryUrl } from '@/utils/cloudinary'
 import { CONDICION_LABELS, CONDICION_CLASES } from '@/utils/useCondicionLabels'
 import { formatPrecio } from '@/utils/useFormatters'
 
 interface Props {
-  publicacion: PublicacionListaResponse
+  publicacion: PublicacionLista
 }
 
 defineProps<Props>()

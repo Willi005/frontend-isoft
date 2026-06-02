@@ -8,16 +8,16 @@ import {
   buscarPublicaciones,
   eliminarPublicacion,
   cambiarVisibilidad,
-} from '@/services/publicacionesService'
-import type { PublicacionListaResponse } from '@/types/publicaciones'
-import { EstadoPublicacion } from '@/types/publicaciones'
-import { cuentasFacade } from '@/services/cuentasFacade'
+} from '@/utils/mockStore'
+import type { PublicacionLista } from '@/utils/mockStore'
+import { EstadoPublicacion } from '@/utils/mockStore'
+import { cuentasFacade } from '@/utils/mockStore'
 
 const router = useRouter()
 
 // Estado local
 
-const publicaciones = ref<PublicacionListaResponse[]>([])
+const publicaciones = ref<PublicacionLista[]>([])
 const cargando = ref(false)
 const error = ref<string | null>(null)
 
@@ -35,7 +35,7 @@ const modalEstado = ref(false)
 const publicacionACambiar = ref<{ id: number; estado: EstadoPublicacion } | null>(null)
 const cambiandoEstado = ref(false)
 
-// Carga de datos desde la API
+// Carga de datos simulados
 
 async function cargarPublicaciones(): Promise<void> {
   cargando.value = true
@@ -112,19 +112,18 @@ async function confirmarCambioEstado(): Promise<void> {
   cambiandoEstado.value = true
 
   try {
-    const respuesta = await cambiarVisibilidad(
+    await cambiarVisibilidad(
       publicacionACambiar.value.id,
       publicacionACambiar.value.estado,
     )
-    // Actualizamos el valor localmente para evitar una recarga completa desde el backend
-    // Como el endpoint público solo devuelve activas, si recargamos una pausada desaparecería de la vista
+    // Actualizamos el valor localmente en la vista
     const index = publicaciones.value.findIndex(
       (p) => p.id === publicacionACambiar.value!.id,
     )
     if (index !== -1) {
       publicaciones.value[index] = {
         ...publicaciones.value[index],
-        estadoPublicacion: respuesta.estadoPublicacion,
+        estadoPublicacion: publicacionACambiar.value.estado,
       }
     }
     modalEstado.value = false

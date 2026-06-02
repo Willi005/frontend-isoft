@@ -3,16 +3,16 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { PhMagnifyingGlass } from '@phosphor-icons/vue'
 import PublicacionCard from '@/components/publicaciones/PublicacionCard.vue'
-import { buscarPublicaciones } from '@/services/publicacionesService'
-import type { PublicacionListaResponse, BuscarPublicacionesParams } from '@/types/publicaciones'
-import type { EstadoCondicionPublicacion } from '@/types/publicaciones'
+import { buscarPublicaciones } from '@/utils/mockStore'
+import type { PublicacionLista, BuscarPublicacionesParams } from '@/utils/mockStore'
+import type { EstadoCondicionPublicacion } from '@/utils/mockStore'
 
 const router = useRouter()
 const route = useRoute()
 
 // Estado local
 
-const publicaciones = ref<PublicacionListaResponse[]>([])
+const publicaciones = ref<PublicacionLista[]>([])
 const cargando = ref(false)
 const error = ref<string | null>(null)
 
@@ -27,7 +27,7 @@ const busqueda = ref('')
 
 
 
-// Carga de datos desde la API
+// Carga de datos simulados
 
 async function cargarPublicaciones(): Promise<void> {
   cargando.value = true

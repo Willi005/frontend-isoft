@@ -6,14 +6,14 @@ import {
   PhPlay,
   PhPause,
 } from '@phosphor-icons/vue'
-import type { PublicacionListaResponse } from '@/types/publicaciones'
-import { EstadoPublicacion } from '@/types/publicaciones'
+import type { PublicacionLista } from '@/utils/mockStore'
+import { EstadoPublicacion } from '@/utils/mockStore'
 import { getCloudinaryUrl } from '@/utils/cloudinary'
 import { CONDICION_LABELS } from '@/utils/useCondicionLabels'
 import { formatPrecio, formatFechaCorta } from '@/utils/useFormatters'
 
 interface Props {
-  publicacion: PublicacionListaResponse
+  publicacion: PublicacionLista
 }
 
 const props = defineProps<Props>()
