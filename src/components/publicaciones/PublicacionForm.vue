@@ -37,8 +37,18 @@ const productoSeleccionado = ref<{ id: number; nombre: string } | null>(
   props.modo === 'editar' ? { id: 1, nombre: 'Producto de ejemplo (simulado)' } : null
 )
 const busquedaProducto = ref('')
-const resultadosBusqueda = computed(() => {
-  return catalogoFacade.buscarProductos(busquedaProducto.value)
+const resultadosBusqueda = ref<{id: number, nombre: string}[]>([])
+
+watch(busquedaProducto, async (newVal) => {
+  if (newVal) {
+    try {
+      resultadosBusqueda.value = await catalogoFacade.obtenerProductos(newVal)
+    } catch {
+      resultadosBusqueda.value = []
+    }
+  } else {
+    resultadosBusqueda.value = []
+  }
 })
 
 function seleccionarProducto(prod: { id: number; nombre: string }) {
