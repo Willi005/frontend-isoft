@@ -196,10 +196,10 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
     novalidate
     @submit.prevent="onSubmit"
   >
-    <!-- Layout de 2 columnas (Figma) -->
+    <!-- Layout de 2 columnas -->
     <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
 
-      <!-- ==================== COLUMNA IZQUIERDA ==================== -->
+      <!-- Columna izq -->
       <div class="flex flex-col gap-5">
 
         <!-- Seccion: Catalogo (producto simulado) -->
@@ -287,7 +287,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
                 </p>
               </div>
 
-              <!-- Stock (solo en creacion) -->
+              <!-- Stock -->
               <div v-if="modo === 'crear'" class="flex flex-col gap-1">
                 <label for="pub-stock" class="text-sm font-medium text-gray-700">
                   Stock inicial
@@ -418,7 +418,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
         </div>
       </div>
 
-      <!-- ==================== COLUMNA DERECHA ==================== -->
+      <!-- Columna derecha -->
       <div class="flex flex-col gap-5">
 
         <!-- Seccion: Media / Imagenes -->
@@ -480,7 +480,7 @@ function onImagenesAMantenerUpdate(urls: string[]): void {
       </div>
     </div>
 
-    <!-- ==================== FOOTER ACCIONES ==================== -->
+    <!-- Footer acciones -->
     <div class="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-end gap-3 border-t border-gray-200 bg-white px-6 py-4 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
       <button
         type="button"

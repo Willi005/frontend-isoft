@@ -1,9 +1,9 @@
 // Composable: useCondicionLabels
 // Mapeos de condición reutilizables para el módulo de publicaciones.
 
-import { EstadoCondicionPublicacion } from '@/utils/mockStore'
+import { EstadoCondicionPublicacion } from '@/types/publicaciones'
 
-/** Labels legibles para cada condición. */
+// Labels legibles para cada condición.
 export const CONDICION_LABELS: Record<EstadoCondicionPublicacion, string> = {
   [EstadoCondicionPublicacion.NUEVO]: 'Nuevo',
   [EstadoCondicionPublicacion.COMO_NUEVO]: 'Como nuevo',
@@ -11,7 +11,7 @@ export const CONDICION_LABELS: Record<EstadoCondicionPublicacion, string> = {
   [EstadoCondicionPublicacion.ACEPTABLE]: 'Aceptable',
 }
 
-/** Clases CSS (Tailwind) para el badge de cada condición. */
+//Clases CSS (Tailwind) para el badge de cada condición.
 export const CONDICION_CLASES: Record<EstadoCondicionPublicacion, string> = {
   [EstadoCondicionPublicacion.NUEVO]: 'bg-emerald-100 text-emerald-700',
   [EstadoCondicionPublicacion.COMO_NUEVO]: 'bg-sky-100 text-sky-700',
@@ -19,7 +19,7 @@ export const CONDICION_CLASES: Record<EstadoCondicionPublicacion, string> = {
   [EstadoCondicionPublicacion.ACEPTABLE]: 'bg-gray-100 text-gray-600',
 }
 
-/** Opciones para selectores/dropdowns de condición. */
+//Opciones para selectores/dropdowns de condición.
 export const CONDICION_OPCIONES: { value: EstadoCondicionPublicacion; label: string }[] = [
   { value: EstadoCondicionPublicacion.NUEVO, label: 'Nuevo' },
   { value: EstadoCondicionPublicacion.COMO_NUEVO, label: 'Como nuevo' },

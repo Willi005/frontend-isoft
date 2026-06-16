@@ -1,6 +1,5 @@
-// ---------------------------------------------------------------------------
-// MOCK STORE (Maqueta Frontend)
-// ---------------------------------------------------------------------------
+
+// Maqueta Frontend
 
 export const EstadoCondicionPublicacion = {
   NUEVO: 'NUEVO',
@@ -85,9 +84,7 @@ export interface BuscarPublicacionesParams {
   size?: number
 }
 
-// ---------------------------------------------------------------------------
 // DATOS EN MEMORIA
-// ---------------------------------------------------------------------------
 
 let currentId = 100
 
@@ -134,9 +131,7 @@ export let publicacionesSimuladas: PublicacionLista[] = [
   MOCK_PUBLICACION_LISTA_2
 ]
 
-// ---------------------------------------------------------------------------
 // FUNCIONES (Simulando lo que harían los servicios)
-// ---------------------------------------------------------------------------
 
 export const cuentasFacade = {
   obtenerUsuarioActual() {
@@ -213,7 +208,7 @@ export async function buscarPublicaciones(
   return new Promise((resolve) => {
     setTimeout(() => {
       let result = [...publicacionesSimuladas]
-      
+
       if (params.busqueda) {
         result = result.filter(p => p.titulo.toLowerCase().includes(params.busqueda!.toLowerCase()))
       }
@@ -225,7 +220,7 @@ export async function buscarPublicaciones(
       const pageSize = params.size || 12
       const pageNumber = params.page || 0
       const totalPages = Math.ceil(totalElements / pageSize)
-      
+
       const start = pageNumber * pageSize
       const content = result.slice(start, start + pageSize)
 

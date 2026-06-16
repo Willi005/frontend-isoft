@@ -34,7 +34,7 @@ async function cargarPublicaciones(): Promise<void> {
   error.value = null
 
   try {
-    // Leemos los query params de la ruta, que ahora vienen directo del Sidebar
+    // Leemos los query params de la ruta, que vienen del Sidebar
     const qCond = route.query.condicion as EstadoCondicionPublicacion | undefined
 
     const params: BuscarPublicacionesParams = {
